@@ -3,7 +3,7 @@
 This is my first assignment for course Remote Sensing Image Analysis at the University of Tokyo.
 |Original PAN (GSD: 1m)|GLP-Reg_FS (GSD: 4m)|Gram-Schmidt (GSD: 4m)
 |---|---|---|
-|![overview](pan.jpg)|![overview](pan.jpg)|![overview](pan.jpg)
+|![overview](PAN.jpg)|![overview](GLP-Reg_FS.jpg)|![overview](Gram-Schmidt.jpg)
 
 ### To Demonstrate on MATLAB
 1. Use the ./GLP-Reg_FS/Sythesize-Full-Scale.ipynb to synthesize the full scale (FS) multispectral (MS) data into 'mul.tif'.
