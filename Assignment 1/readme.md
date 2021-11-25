@@ -1,17 +1,14 @@
-# PanNet-Landsat
-Implementation of PanNet by Chainer. Landsat 8 images are used in this repository.  
+# Exercise on Panchromatic Sharpening
+### Description
+This is my first assignment for course Remore Sensing Image Analysis at the University of Tokyo.
+|Original PAN (GSD: 1m)|GLP-Reg_FS (GSD: 4m)|Gram-Schmidt (GSD: 4m)
+|---|---|---|
+|![overview](datasets/pan.tif)|![overview](datasets/pan.tif)|![overview](datasets/pan.tif)
 
-|Original RGB (resolution: 30m)|Pansharpened by PanNet (resolution: 15m)|
-|---|---|
-|![overview](imgs/gdal_merged_original.png)|![overview](imgs/pansharpened_by_pannet.png)|  
-
-Original RGB image is created by gdal_merge. Both images are screenshots of QGIS on my laptop.
-
-### Architecture of PanNet
-![overview](imgs/architecture.png)
-
-### Demo on Google Colab
-Please see [examples/demo_on_colab.ipynb](https://github.com/oyam/PanNet-landsat/blob/master/examples/demo_on_colab.ipynb)
-
+### To Demostrate on MATLAB
+1. Use the ./GLP-Reg_FS/Sythesize-Full-Scale.ipynb to sythesize the full scale (FS) multispectral (MS) data into 'mul.tif'.
+2. Run 'run.m' using 'mul.tif' and MS datasets.
+3. Run 'tiffw.m' to decompose the fused pan-sharpened into 4 single band data.
+4. Use ENVI software to sytheszie the final RGB image. 
 ### References
-* PanNet: A deep network architecture for pan-sharpening   http://openaccess.thecvf.com/content_iccv_2017/html/Yang_PanNet_A_Deep_ICCV_2017_paper.html
+This assignment reproduce the paper: G. Vivone *et al.*, "Full Scale Regression-Based Injection Coefficients for Panchromatic Sharpening," *IEEE Transactions on Image Processing*, 27(7):3418–3431, 2018, doi: [10.1109/TIP.2018.2819501](https://ieeexplore.ieee.org/abstract/document/8325487).
