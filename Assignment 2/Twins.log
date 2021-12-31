@@ -1,0 +1,3641 @@
+2021-12-30 00:54:18,230 - mmseg - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.11 (default, Jul 27 2021, 14:32:16) [GCC 7.5.0]
+CUDA available: True
+GPU 0: GeForce RTX 3080
+CUDA_HOME: /usr/local/cuda
+NVCC: Build cuda_11.2.r11.2/compiler.29373293_0
+GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+PyTorch: 1.8.0
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.7.0 (Git Hash 7aed236906b1f7a05c0917e5257a1af05e9ff683)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.0.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.8.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.9.0
+OpenCV: 4.5.4
+MMCV: 1.4.0
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 11.1
+MMSegmentation: 0.20.0+bdfbaf0
+------------------------------------------------------------
+
+2021-12-30 00:54:18,230 - mmseg - INFO - Distributed training: False
+2021-12-30 00:54:18,362 - mmseg - INFO - Config:
+backbone_norm_cfg = dict(type='LN')
+norm_cfg = dict(type='BN', requires_grad=True)
+model = dict(
+    type='EncoderDecoder',
+    backbone=dict(
+        type='SVT',
+        embed_dims=[64, 128, 256, 512],
+        num_heads=[2, 4, 8, 16],
+        patch_sizes=[4, 2, 2, 2],
+        strides=[4, 2, 2, 2],
+        mlp_ratios=[4, 4, 4, 4],
+        out_indices=(0, 1, 2, 3),
+        qkv_bias=True,
+        norm_cfg=dict(type='LN'),
+        depths=[2, 2, 10, 4],
+        sr_ratios=[8, 4, 2, 1],
+        windiow_sizes=[7, 7, 7, 7],
+        norm_after_stage=True,
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        drop_path_rate=0.2),
+    neck=dict(
+        type='FPN',
+        in_channels=[64, 128, 256, 512],
+        out_channels=256,
+        num_outs=4),
+    decode_head=dict(
+        type='FPNHead',
+        in_channels=[256, 256, 256, 256],
+        in_index=[0, 1, 2, 3],
+        feature_strides=[4, 8, 16, 32],
+        channels=128,
+        dropout_ratio=0.1,
+        num_classes=2,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        align_corners=False,
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+    train_cfg=dict(),
+    test_cfg=dict(mode='whole'))
+dataset_type = 'CustomDataset'
+data_root = '/home/yuhao-zhou/mmsegmentation/data/RS'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+crop_size = (512, 512)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', reduce_zero_label=False),
+    dict(type='RandomFlip', prob=0.5, direction='vertical'),
+    dict(type='RandomFlip', prob=0.5, direction='horizontal'),
+    dict(type='RandomRotate', prob=0.5, degree=30),
+    dict(type='PhotoMetricDistortion'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size=(512, 512), pad_val=0, seg_pad_val=255),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_semantic_seg'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(512, 512),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=8,
+    workers_per_gpu=4,
+    train=dict(
+        type='CustomDataset',
+        data_root='/home/yuhao-zhou/mmsegmentation/data/RS',
+        img_dir='img_dir/train_img',
+        ann_dir='ann_dir/train_label',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations', reduce_zero_label=False),
+            dict(type='RandomFlip', prob=0.5, direction='vertical'),
+            dict(type='RandomFlip', prob=0.5, direction='horizontal'),
+            dict(type='RandomRotate', prob=0.5, degree=30),
+            dict(type='PhotoMetricDistortion'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size=(512, 512), pad_val=0, seg_pad_val=255),
+            dict(type='DefaultFormatBundle'),
+            dict(type='Collect', keys=['img', 'gt_semantic_seg'])
+        ]),
+    val=dict(
+        type='CustomDataset',
+        data_root='/home/yuhao-zhou/mmsegmentation/data/RS',
+        img_dir='img_dir/val_img',
+        ann_dir='ann_dir/val_label',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(512, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='CustomDataset',
+        data_root='/home/yuhao-zhou/mmsegmentation/data/RS',
+        img_dir='test/test_img',
+        ann_dir='ann_dir/test_label',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(512, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]))
+log_config = dict(
+    interval=50, hooks=[dict(type='TextLoggerHook', by_epoch=False)])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = '/home/yuhao-zhou/mmsegmentation/twins_svt-s_fpn_fpnhead_8x4_512x512_80k_ade20k_20211130_141006-0a0d3317.pth'
+resume_from = None
+workflow = [('train', 1)]
+cudnn_benchmark = True
+optimizer = dict(type='AdamW', lr=0.0001, weight_decay=0.0001)
+optimizer_config = dict()
+lr_config = dict(policy='poly', power=0.9, min_lr=0.0001, by_epoch=False)
+runner = dict(type='IterBasedRunner', max_iters=10000)
+checkpoint_config = dict(by_epoch=False, interval=1000)
+evaluation = dict(interval=100, metric='mIoU', pre_eval=True)
+work_dir = './work_dirs/TW-2'
+gpu_ids = range(0, 1)
+
+2021-12-30 00:54:18,363 - mmseg - INFO - Set random seed to 919136586, deterministic: False
+2021-12-30 00:54:18,634 - mmseg - INFO - initialize FPN with init_cfg {'type': 'Xavier', 'layer': 'Conv2d', 'distribution': 'uniform'}
+2021-12-30 00:54:18,643 - mmseg - INFO - initialize FPNHead with init_cfg {'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+Name of parameter - Initialization information
+
+backbone.patch_embeds.0.projection.weight - torch.Size([64, 3, 4, 4]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.0.projection.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.0.norm.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.0.norm.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.1.projection.weight - torch.Size([128, 64, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.1.projection.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.1.norm.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.1.norm.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.2.projection.weight - torch.Size([256, 128, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.2.projection.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.2.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.2.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.3.projection.weight - torch.Size([512, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.3.projection.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.patch_embeds.3.norm.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.patch_embeds.3.norm.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.0.norm1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.0.norm1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.0.attn.qkv.weight - torch.Size([192, 64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.attn.qkv.bias - torch.Size([192]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.attn.proj.weight - torch.Size([64, 64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.attn.proj.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.norm2.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.0.norm2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.0.ffn.layers.0.0.weight - torch.Size([256, 64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.ffn.layers.0.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.ffn.layers.1.weight - torch.Size([64, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.0.ffn.layers.1.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.norm1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.norm1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.attn.attn.in_proj_weight - torch.Size([192, 64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.attn.attn.in_proj_bias - torch.Size([192]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.attn.attn.out_proj.weight - torch.Size([64, 64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.attn.attn.out_proj.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.attn.sr.weight - torch.Size([64, 64, 8, 8]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.attn.sr.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.attn.norm.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.attn.norm.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.norm2.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.norm2.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.0.1.ffn.layers.0.0.weight - torch.Size([256, 64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.ffn.layers.0.0.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.ffn.layers.1.weight - torch.Size([64, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.0.1.ffn.layers.1.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.0.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.0.attn.qkv.weight - torch.Size([384, 128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.attn.qkv.bias - torch.Size([384]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.attn.proj.weight - torch.Size([128, 128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.attn.proj.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.0.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.0.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.ffn.layers.0.0.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.ffn.layers.1.weight - torch.Size([128, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.0.ffn.layers.1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.norm1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.norm1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.attn.attn.in_proj_weight - torch.Size([384, 128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.attn.attn.in_proj_bias - torch.Size([384]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.attn.attn.out_proj.weight - torch.Size([128, 128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.attn.attn.out_proj.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.attn.sr.weight - torch.Size([128, 128, 4, 4]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.attn.sr.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.attn.norm.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.attn.norm.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.norm2.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.norm2.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.1.1.ffn.layers.0.0.weight - torch.Size([512, 128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.ffn.layers.0.0.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.ffn.layers.1.weight - torch.Size([128, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.1.1.ffn.layers.1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.0.attn.qkv.weight - torch.Size([768, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.attn.qkv.bias - torch.Size([768]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.attn.proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.attn.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.0.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.0.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.attn.attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.attn.attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.attn.attn.out_proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.attn.attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.attn.sr.weight - torch.Size([256, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.attn.sr.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.attn.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.attn.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.1.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.1.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.2.attn.qkv.weight - torch.Size([768, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.attn.qkv.bias - torch.Size([768]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.attn.proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.attn.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.2.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.2.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.attn.attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.attn.attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.attn.attn.out_proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.attn.attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.attn.sr.weight - torch.Size([256, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.attn.sr.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.attn.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.attn.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.3.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.3.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.4.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.4.attn.qkv.weight - torch.Size([768, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.attn.qkv.bias - torch.Size([768]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.attn.proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.attn.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.4.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.4.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.4.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.attn.attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.attn.attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.attn.attn.out_proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.attn.attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.attn.sr.weight - torch.Size([256, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.attn.sr.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.attn.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.attn.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.5.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.5.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.6.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.6.attn.qkv.weight - torch.Size([768, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.attn.qkv.bias - torch.Size([768]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.attn.proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.attn.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.6.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.6.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.6.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.attn.attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.attn.attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.attn.attn.out_proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.attn.attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.attn.sr.weight - torch.Size([256, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.attn.sr.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.attn.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.attn.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.7.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.7.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.8.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.8.attn.qkv.weight - torch.Size([768, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.attn.qkv.bias - torch.Size([768]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.attn.proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.attn.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.8.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.8.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.8.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.attn.attn.in_proj_weight - torch.Size([768, 256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.attn.attn.in_proj_bias - torch.Size([768]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.attn.attn.out_proj.weight - torch.Size([256, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.attn.attn.out_proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.attn.sr.weight - torch.Size([256, 256, 2, 2]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.attn.sr.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.attn.norm.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.attn.norm.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.2.9.ffn.layers.0.0.weight - torch.Size([1024, 256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.ffn.layers.0.0.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.ffn.layers.1.weight - torch.Size([256, 1024]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.2.9.ffn.layers.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.0.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.0.attn.qkv.weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.attn.qkv.bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.attn.proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.attn.proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.0.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.0.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.ffn.layers.0.0.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.ffn.layers.1.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.0.ffn.layers.1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.1.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.attn.attn.in_proj_weight - torch.Size([1536, 512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.attn.attn.in_proj_bias - torch.Size([1536]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.attn.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.1.attn.attn.out_proj.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.1.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.1.ffn.layers.0.0.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.1.ffn.layers.1.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.1.ffn.layers.1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.2.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.2.attn.qkv.weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.attn.qkv.bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.attn.proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.attn.proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.2.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.2.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.ffn.layers.0.0.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.ffn.layers.1.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.2.ffn.layers.1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.3.norm1.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.norm1.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.attn.attn.in_proj_weight - torch.Size([1536, 512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.attn.attn.in_proj_bias - torch.Size([1536]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.attn.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.3.attn.attn.out_proj.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.norm2.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.norm2.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.layers.3.3.ffn.layers.0.0.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.3.ffn.layers.0.0.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.3.ffn.layers.1.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.layers.3.3.ffn.layers.1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.0.proj.weight - torch.Size([64, 1, 3, 3]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.0.proj.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.1.proj.weight - torch.Size([128, 1, 3, 3]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.1.proj.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.2.proj.weight - torch.Size([256, 1, 3, 3]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.2.proj.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.3.proj.weight - torch.Size([512, 1, 3, 3]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.position_encodings.3.proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in SVT  
+
+backbone.norm_list.0.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.0.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.1.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.1.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.3.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+backbone.norm_list.3.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.lateral_convs.0.conv.weight - torch.Size([256, 64, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.lateral_convs.1.conv.weight - torch.Size([256, 128, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.lateral_convs.2.conv.weight - torch.Size([256, 256, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.lateral_convs.3.conv.weight - torch.Size([256, 512, 1, 1]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.lateral_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.fpn_convs.0.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.0.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.fpn_convs.1.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.1.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.fpn_convs.2.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.2.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+neck.fpn_convs.3.conv.weight - torch.Size([256, 256, 3, 3]): 
+XavierInit: gain=1, distribution=uniform, bias=0 
+
+neck.fpn_convs.3.conv.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.conv_seg.weight - torch.Size([2, 128, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+decode_head.conv_seg.bias - torch.Size([2]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+decode_head.scale_heads.0.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.0.0.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.0.0.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.1.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.1.0.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.1.0.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.0.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.0.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.2.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.2.2.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.0.conv.weight - torch.Size([128, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.0.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.0.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.2.conv.weight - torch.Size([128, 128, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.2.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.2.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.4.conv.weight - torch.Size([128, 128, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.4.bn.weight - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.scale_heads.3.4.bn.bias - torch.Size([128]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+2021-12-30 00:54:18,648 - mmseg - INFO - EncoderDecoder(
+  (backbone): SVT(
+    (patch_embeds): ModuleList(
+      (0): PatchEmbed(
+        (adap_padding): AdaptivePadding()
+        (projection): Conv2d(3, 64, kernel_size=(4, 4), stride=(4, 4))
+        (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+      )
+      (1): PatchEmbed(
+        (adap_padding): AdaptivePadding()
+        (projection): Conv2d(64, 128, kernel_size=(2, 2), stride=(2, 2))
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      )
+      (2): PatchEmbed(
+        (adap_padding): AdaptivePadding()
+        (projection): Conv2d(128, 256, kernel_size=(2, 2), stride=(2, 2))
+        (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      )
+      (3): PatchEmbed(
+        (adap_padding): AdaptivePadding()
+        (projection): Conv2d(256, 512, kernel_size=(2, 2), stride=(2, 2))
+        (norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+      )
+    )
+    (position_encoding_drops): ModuleList(
+      (0): Dropout(p=0.0, inplace=False)
+      (1): Dropout(p=0.0, inplace=False)
+      (2): Dropout(p=0.0, inplace=False)
+      (3): Dropout(p=0.0, inplace=False)
+    )
+    (layers): ModuleList(
+      (0): ModuleList(
+        (0): LSAEncoderLayer(
+          (norm1): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=64, out_features=192, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=64, out_features=64, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=64, out_features=256, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=256, out_features=64, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): Identity()
+        )
+        (1): GSAEncoderLayer(
+          (norm1): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=64, out_features=64, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
+            (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=64, out_features=256, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=256, out_features=64, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+      )
+      (1): ModuleList(
+        (0): LSAEncoderLayer(
+          (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=128, out_features=384, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=128, out_features=128, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=128, out_features=512, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=512, out_features=128, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (1): GSAEncoderLayer(
+          (norm1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=128, out_features=128, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
+            (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=128, out_features=512, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=512, out_features=128, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+      )
+      (2): ModuleList(
+        (0): LSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=256, out_features=768, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=256, out_features=256, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (1): GSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (2): LSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=256, out_features=768, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=256, out_features=256, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (3): GSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (4): LSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=256, out_features=768, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=256, out_features=256, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (5): GSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (6): LSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=256, out_features=768, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=256, out_features=256, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (7): GSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (8): LSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=256, out_features=768, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=256, out_features=256, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (9): GSAEncoderLayer(
+          (norm1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=256, out_features=256, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+            (sr): Conv2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          )
+          (norm2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=256, out_features=1024, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=1024, out_features=256, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+      )
+      (3): ModuleList(
+        (0): LSAEncoderLayer(
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=512, out_features=1536, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=512, out_features=512, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=512, out_features=2048, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=512, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (1): GSAEncoderLayer(
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=512, out_features=512, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+          )
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=512, out_features=2048, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=512, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (2): LSAEncoderLayer(
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (attn): LocallyGroupedSelfAttention(
+            (qkv): Linear(in_features=512, out_features=1536, bias=True)
+            (attn_drop): Dropout(p=0.0, inplace=False)
+            (proj): Linear(in_features=512, out_features=512, bias=True)
+            (proj_drop): Dropout(p=0.0, inplace=False)
+          )
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=512, out_features=2048, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=512, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+        (3): GSAEncoderLayer(
+          (norm1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (attn): GlobalSubsampledAttention(
+            (attn): MultiheadAttention(
+              (out_proj): _LinearWithBias(in_features=512, out_features=512, bias=True)
+            )
+            (proj_drop): Dropout(p=0.0, inplace=False)
+            (dropout_layer): DropPath()
+          )
+          (norm2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          (ffn): FFN(
+            (activate): GELU()
+            (layers): Sequential(
+              (0): Sequential(
+                (0): Linear(in_features=512, out_features=2048, bias=True)
+                (1): GELU()
+                (2): Dropout(p=0.0, inplace=False)
+              )
+              (1): Linear(in_features=2048, out_features=512, bias=True)
+              (2): Dropout(p=0.0, inplace=False)
+            )
+            (dropout_layer): DropPath()
+          )
+          (drop_path): DropPath()
+        )
+      )
+    )
+    (position_encodings): ModuleList(
+      (0): ConditionalPositionEncoding(
+        (proj): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=64)
+      )
+      (1): ConditionalPositionEncoding(
+        (proj): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=128)
+      )
+      (2): ConditionalPositionEncoding(
+        (proj): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256)
+      )
+      (3): ConditionalPositionEncoding(
+        (proj): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
+      )
+    )
+    (norm_list): ModuleList(
+      (0): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+      (1): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (2): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+      (3): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    )
+  )
+  (neck): FPN(
+    (lateral_convs): ModuleList(
+      (0): ConvModule(
+        (conv): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+      )
+      (1): ConvModule(
+        (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1))
+      )
+      (2): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(1, 1), stride=(1, 1))
+      )
+      (3): ConvModule(
+        (conv): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1))
+      )
+    )
+    (fpn_convs): ModuleList(
+      (0): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (1): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (2): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (3): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+  )
+  init_cfg={'type': 'Xavier', 'layer': 'Conv2d', 'distribution': 'uniform'}
+  (decode_head): FPNHead(
+    input_transform=multiple_select, ignore_index=255, align_corners=False
+    (loss_decode): CrossEntropyLoss()
+    (conv_seg): Conv2d(128, 2, kernel_size=(1, 1), stride=(1, 1))
+    (dropout): Dropout2d(p=0.1, inplace=False)
+    (scale_heads): ModuleList(
+      (0): Sequential(
+        (0): ConvModule(
+          (conv): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (1): Sequential(
+        (0): ConvModule(
+          (conv): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (1): Upsample()
+      )
+      (2): Sequential(
+        (0): ConvModule(
+          (conv): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (1): Upsample()
+        (2): ConvModule(
+          (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (3): Upsample()
+      )
+      (3): Sequential(
+        (0): ConvModule(
+          (conv): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (1): Upsample()
+        (2): ConvModule(
+          (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (3): Upsample()
+        (4): ConvModule(
+          (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+        (5): Upsample()
+      )
+    )
+  )
+  init_cfg={'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+)
+2021-12-30 00:54:18,654 - mmseg - INFO - Loaded 333 images
+2021-12-30 00:54:19,866 - mmseg - INFO - Loaded 37 images
+2021-12-30 00:54:19,866 - mmseg - INFO - load checkpoint from local path: /home/yuhao-zhou/mmsegmentation/twins_svt-s_fpn_fpnhead_8x4_512x512_80k_ade20k_20211130_141006-0a0d3317.pth
+2021-12-30 00:54:19,921 - mmseg - WARNING - The model and loaded state dict do not match exactly
+
+size mismatch for decode_head.conv_seg.weight: copying a param with shape torch.Size([150, 128, 1, 1]) from checkpoint, the shape in current model is torch.Size([2, 128, 1, 1]).
+size mismatch for decode_head.conv_seg.bias: copying a param with shape torch.Size([150]) from checkpoint, the shape in current model is torch.Size([2]).
+2021-12-30 00:54:19,923 - mmseg - INFO - Start running, host: yuhao-zhou@Ubuntu, work_dir: /home/yuhao-zhou/mmsegmentation/work_dirs/TW-2
+2021-12-30 00:54:19,923 - mmseg - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2021-12-30 00:54:19,923 - mmseg - INFO - workflow: [('train', 1)], max: 10000 iters
+2021-12-30 00:54:19,923 - mmseg - INFO - Checkpoints will be saved to /home/yuhao-zhou/mmsegmentation/work_dirs/TW-2 by HardDiskBackend.
+2021-12-30 00:54:36,683 - mmseg - INFO - Iter [50/10000]	lr: 1.000e-04, eta: 0:55:20, time: 0.334, data_time: 0.049, memory: 7682, decode.loss_ce: 0.3120, decode.acc_seg: 84.1426, loss: 0.3120
+2021-12-30 00:54:51,787 - mmseg - INFO - Iter [100/10000]	lr: 1.000e-04, eta: 0:52:27, time: 0.302, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1864, decode.acc_seg: 87.9407, loss: 0.1864
+2021-12-30 00:54:53,225 - mmseg - INFO - per class results:
+2021-12-30 00:54:53,226 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 93.04 | 97.17 |
+|  building  |  55.4 | 67.04 |
++------------+-------+-------+
+2021-12-30 00:54:53,226 - mmseg - INFO - Summary:
+2021-12-30 00:54:53,226 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 93.6 | 74.22 | 82.11 |
++------+-------+-------+
+2021-12-30 00:54:53,226 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9360, mIoU: 0.7422, mAcc: 0.8211, IoU.background: 0.9304, IoU.building: 0.5540, Acc.background: 0.9717, Acc.building: 0.6704
+2021-12-30 00:55:08,348 - mmseg - INFO - Iter [150/10000]	lr: 1.000e-04, eta: 0:52:55, time: 0.331, data_time: 0.075, memory: 7682, decode.loss_ce: 0.1618, decode.acc_seg: 88.9892, loss: 0.1618
+2021-12-30 00:55:23,486 - mmseg - INFO - Iter [200/10000]	lr: 1.000e-04, eta: 0:51:51, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1502, decode.acc_seg: 89.1209, loss: 0.1502
+2021-12-30 00:55:24,364 - mmseg - INFO - per class results:
+2021-12-30 00:55:24,365 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 93.53 | 97.02 |
+|  building  | 59.17 | 72.25 |
++------------+-------+-------+
+2021-12-30 00:55:24,365 - mmseg - INFO - Summary:
+2021-12-30 00:55:24,365 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 94.08 | 76.35 | 84.64 |
++-------+-------+-------+
+2021-12-30 00:55:24,365 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9408, mIoU: 0.7635, mAcc: 0.8464, IoU.background: 0.9353, IoU.building: 0.5917, Acc.background: 0.9702, Acc.building: 0.7225
+2021-12-30 00:55:41,678 - mmseg - INFO - Iter [250/10000]	lr: 1.000e-04, eta: 0:53:05, time: 0.364, data_time: 0.107, memory: 7682, decode.loss_ce: 0.1364, decode.acc_seg: 89.6478, loss: 0.1364
+2021-12-30 00:55:56,835 - mmseg - INFO - Iter [300/10000]	lr: 1.000e-04, eta: 0:52:11, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1385, decode.acc_seg: 89.2837, loss: 0.1385
+2021-12-30 00:55:57,744 - mmseg - INFO - per class results:
+2021-12-30 00:55:57,744 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 93.87 | 96.19 |
+|  building  | 63.66 | 81.68 |
++------------+-------+-------+
+2021-12-30 00:55:57,744 - mmseg - INFO - Summary:
+2021-12-30 00:55:57,745 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 94.47 | 78.77 | 88.94 |
++-------+-------+-------+
+2021-12-30 00:55:57,745 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9447, mIoU: 0.7877, mAcc: 0.8894, IoU.background: 0.9387, IoU.building: 0.6366, Acc.background: 0.9619, Acc.building: 0.8168
+2021-12-30 00:56:12,897 - mmseg - INFO - Iter [350/10000]	lr: 1.000e-04, eta: 0:51:52, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.1292, decode.acc_seg: 89.6031, loss: 0.1292
+2021-12-30 00:56:28,042 - mmseg - INFO - Iter [400/10000]	lr: 1.000e-04, eta: 0:51:13, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1224, decode.acc_seg: 90.2339, loss: 0.1224
+2021-12-30 00:56:29,009 - mmseg - INFO - per class results:
+2021-12-30 00:56:29,010 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 93.99 |  96.3 |
+|  building  | 64.12 | 81.74 |
++------------+-------+-------+
+2021-12-30 00:56:29,010 - mmseg - INFO - Summary:
+2021-12-30 00:56:29,010 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 94.57 | 79.06 | 89.02 |
++-------+-------+-------+
+2021-12-30 00:56:29,010 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9457, mIoU: 0.7906, mAcc: 0.8902, IoU.background: 0.9399, IoU.building: 0.6412, Acc.background: 0.9630, Acc.building: 0.8174
+2021-12-30 00:56:44,129 - mmseg - INFO - Iter [450/10000]	lr: 1.000e-04, eta: 0:50:58, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.1248, decode.acc_seg: 90.4993, loss: 0.1248
+2021-12-30 00:57:01,441 - mmseg - INFO - Iter [500/10000]	lr: 1.000e-04, eta: 0:51:07, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.1228, decode.acc_seg: 89.9486, loss: 0.1228
+2021-12-30 00:57:02,370 - mmseg - INFO - per class results:
+2021-12-30 00:57:02,371 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.34 |  97.0 |
+|  building  | 64.67 | 79.08 |
++------------+-------+-------+
+2021-12-30 00:57:02,371 - mmseg - INFO - Summary:
+2021-12-30 00:57:02,371 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 94.87 | 79.51 | 88.04 |
++-------+-------+-------+
+2021-12-30 00:57:02,371 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9487, mIoU: 0.7951, mAcc: 0.8804, IoU.background: 0.9434, IoU.building: 0.6467, Acc.background: 0.9700, Acc.building: 0.7908
+2021-12-30 00:57:17,517 - mmseg - INFO - Iter [550/10000]	lr: 1.000e-04, eta: 0:50:50, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.1158, decode.acc_seg: 90.9199, loss: 0.1158
+2021-12-30 00:57:32,679 - mmseg - INFO - Iter [600/10000]	lr: 1.000e-04, eta: 0:50:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1114, decode.acc_seg: 90.6199, loss: 0.1114
+2021-12-30 00:57:33,641 - mmseg - INFO - per class results:
+2021-12-30 00:57:33,641 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.44 | 97.35 |
+|  building  | 64.41 | 77.08 |
++------------+-------+-------+
+2021-12-30 00:57:33,641 - mmseg - INFO - Summary:
+2021-12-30 00:57:33,642 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 94.95 | 79.43 | 87.22 |
++-------+-------+-------+
+2021-12-30 00:57:33,642 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9495, mIoU: 0.7943, mAcc: 0.8722, IoU.background: 0.9444, IoU.building: 0.6441, Acc.background: 0.9735, Acc.building: 0.7708
+2021-12-30 00:57:48,772 - mmseg - INFO - Iter [650/10000]	lr: 1.000e-04, eta: 0:50:03, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.1114, decode.acc_seg: 89.8747, loss: 0.1114
+2021-12-30 00:58:06,055 - mmseg - INFO - Iter [700/10000]	lr: 1.000e-04, eta: 0:50:03, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.1048, decode.acc_seg: 90.5315, loss: 0.1048
+2021-12-30 00:58:06,956 - mmseg - INFO - per class results:
+2021-12-30 00:58:06,956 - mmseg - INFO - 
++------------+------+-------+
+|   Class    | IoU  |  Acc  |
++------------+------+-------+
+| background | 94.6 | 97.19 |
+|  building  | 65.9 | 79.67 |
++------------+------+-------+
+2021-12-30 00:58:06,956 - mmseg - INFO - Summary:
+2021-12-30 00:58:06,956 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.11 | 80.25 | 88.43 |
++-------+-------+-------+
+2021-12-30 00:58:06,956 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9511, mIoU: 0.8025, mAcc: 0.8843, IoU.background: 0.9460, IoU.building: 0.6590, Acc.background: 0.9719, Acc.building: 0.7967
+2021-12-30 00:58:22,105 - mmseg - INFO - Iter [750/10000]	lr: 1.000e-04, eta: 0:49:45, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.1059, decode.acc_seg: 91.3088, loss: 0.1059
+2021-12-30 00:58:37,255 - mmseg - INFO - Iter [800/10000]	lr: 1.000e-04, eta: 0:49:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1091, decode.acc_seg: 90.7481, loss: 0.1091
+2021-12-30 00:58:38,127 - mmseg - INFO - per class results:
+2021-12-30 00:58:38,127 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  94.6 | 96.89 |
+|  building  | 66.65 | 82.03 |
++------------+-------+-------+
+2021-12-30 00:58:38,127 - mmseg - INFO - Summary:
+2021-12-30 00:58:38,128 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.13 | 80.63 | 89.46 |
++-------+-------+-------+
+2021-12-30 00:58:38,128 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9513, mIoU: 0.8063, mAcc: 0.8946, IoU.background: 0.9460, IoU.building: 0.6665, Acc.background: 0.9689, Acc.building: 0.8203
+2021-12-30 00:58:53,267 - mmseg - INFO - Iter [850/10000]	lr: 1.000e-04, eta: 0:49:01, time: 0.320, data_time: 0.063, memory: 7682, decode.loss_ce: 0.0924, decode.acc_seg: 91.9683, loss: 0.0924
+2021-12-30 00:59:08,392 - mmseg - INFO - Iter [900/10000]	lr: 1.000e-04, eta: 0:48:35, time: 0.302, data_time: 0.046, memory: 7682, decode.loss_ce: 0.1061, decode.acc_seg: 91.4968, loss: 0.1061
+2021-12-30 00:59:09,306 - mmseg - INFO - per class results:
+2021-12-30 00:59:09,306 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.55 | 97.18 |
+|  building  | 65.64 | 79.42 |
++------------+-------+-------+
+2021-12-30 00:59:09,306 - mmseg - INFO - Summary:
+2021-12-30 00:59:09,306 - mmseg - INFO - 
++-------+------+------+
+|  aAcc | mIoU | mAcc |
++-------+------+------+
+| 95.07 | 80.1 | 88.3 |
++-------+------+------+
+2021-12-30 00:59:09,306 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9507, mIoU: 0.8010, mAcc: 0.8830, IoU.background: 0.9455, IoU.building: 0.6564, Acc.background: 0.9718, Acc.building: 0.7942
+2021-12-30 00:59:26,615 - mmseg - INFO - Iter [950/10000]	lr: 1.000e-04, eta: 0:48:40, time: 0.364, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0989, decode.acc_seg: 90.7527, loss: 0.0989
+2021-12-30 00:59:41,773 - mmseg - INFO - Saving checkpoint at 1000 iterations
+2021-12-30 00:59:42,101 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 00:59:42,101 - mmseg - INFO - Iter [1000/10000]	lr: 1.000e-04, eta: 0:48:18, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0992, decode.acc_seg: 91.1436, loss: 0.0992
+2021-12-30 00:59:43,014 - mmseg - INFO - per class results:
+2021-12-30 00:59:43,015 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.74 | 97.76 |
+|  building  | 65.42 |  76.3 |
++------------+-------+-------+
+2021-12-30 00:59:43,015 - mmseg - INFO - Summary:
+2021-12-30 00:59:43,015 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.21 | 80.08 | 87.03 |
++-------+-------+-------+
+2021-12-30 00:59:43,015 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 00:59:43,015 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9521, mIoU: 0.8008, mAcc: 0.8703, IoU.background: 0.9474, IoU.building: 0.6542, Acc.background: 0.9776, Acc.building: 0.7630
+2021-12-30 00:59:58,161 - mmseg - INFO - Iter [1050/10000]	lr: 1.000e-04, eta: 0:48:02, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0981, decode.acc_seg: 91.1413, loss: 0.0981
+2021-12-30 01:00:13,319 - mmseg - INFO - Iter [1100/10000]	lr: 1.000e-04, eta: 0:47:38, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0915, decode.acc_seg: 91.5567, loss: 0.0915
+2021-12-30 01:00:14,271 - mmseg - INFO - per class results:
+2021-12-30 01:00:14,271 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.73 | 97.23 |
+|  building  | 66.66 | 80.39 |
++------------+-------+-------+
+2021-12-30 01:00:14,271 - mmseg - INFO - Summary:
+2021-12-30 01:00:14,271 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.23 | 80.69 | 88.81 |
++-------+-------+-------+
+2021-12-30 01:00:14,272 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9523, mIoU: 0.8069, mAcc: 0.8881, IoU.background: 0.9473, IoU.building: 0.6666, Acc.background: 0.9723, Acc.building: 0.8039
+2021-12-30 01:00:31,565 - mmseg - INFO - Iter [1150/10000]	lr: 1.000e-04, eta: 0:47:39, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0924, decode.acc_seg: 91.4707, loss: 0.0924
+2021-12-30 01:00:46,717 - mmseg - INFO - Iter [1200/10000]	lr: 1.000e-04, eta: 0:47:15, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0906, decode.acc_seg: 91.9571, loss: 0.0906
+2021-12-30 01:00:47,611 - mmseg - INFO - per class results:
+2021-12-30 01:00:47,611 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.76 | 97.65 |
+|  building  | 65.86 | 77.37 |
++------------+-------+-------+
+2021-12-30 01:00:47,611 - mmseg - INFO - Summary:
+2021-12-30 01:00:47,611 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.24 | 80.31 | 87.51 |
++-------+-------+-------+
+2021-12-30 01:00:47,611 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9524, mIoU: 0.8031, mAcc: 0.8751, IoU.background: 0.9476, IoU.building: 0.6586, Acc.background: 0.9765, Acc.building: 0.7737
+2021-12-30 01:01:02,771 - mmseg - INFO - Iter [1250/10000]	lr: 1.000e-04, eta: 0:46:59, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.1008, decode.acc_seg: 91.1710, loss: 0.1008
+2021-12-30 01:01:17,919 - mmseg - INFO - Iter [1300/10000]	lr: 1.000e-04, eta: 0:46:36, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0983, decode.acc_seg: 91.1295, loss: 0.0983
+2021-12-30 01:01:18,889 - mmseg - INFO - per class results:
+2021-12-30 01:01:18,889 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.67 | 97.45 |
+|  building  | 65.74 | 78.19 |
++------------+-------+-------+
+2021-12-30 01:01:18,890 - mmseg - INFO - Summary:
+2021-12-30 01:01:18,890 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.17 | 80.21 | 87.82 |
++-------+-------+-------+
+2021-12-30 01:01:18,890 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9517, mIoU: 0.8021, mAcc: 0.8782, IoU.background: 0.9467, IoU.building: 0.6574, Acc.background: 0.9745, Acc.building: 0.7819
+2021-12-30 01:01:34,041 - mmseg - INFO - Iter [1350/10000]	lr: 1.000e-04, eta: 0:46:21, time: 0.322, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0906, decode.acc_seg: 91.1719, loss: 0.0906
+2021-12-30 01:01:51,370 - mmseg - INFO - Iter [1400/10000]	lr: 1.000e-04, eta: 0:46:12, time: 0.347, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0891, decode.acc_seg: 91.6233, loss: 0.0891
+2021-12-30 01:01:52,247 - mmseg - INFO - per class results:
+2021-12-30 01:01:52,247 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.87 | 97.43 |
+|  building  | 67.14 | 79.94 |
++------------+-------+-------+
+2021-12-30 01:01:52,247 - mmseg - INFO - Summary:
+2021-12-30 01:01:52,247 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.36 | 81.0 | 88.69 |
++-------+------+-------+
+2021-12-30 01:01:52,247 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9536, mIoU: 0.8100, mAcc: 0.8869, IoU.background: 0.9487, IoU.building: 0.6714, Acc.background: 0.9743, Acc.building: 0.7994
+2021-12-30 01:02:07,403 - mmseg - INFO - Iter [1450/10000]	lr: 1.000e-04, eta: 0:45:56, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0886, decode.acc_seg: 91.4606, loss: 0.0886
+2021-12-30 01:02:22,548 - mmseg - INFO - Iter [1500/10000]	lr: 1.000e-04, eta: 0:45:34, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0906, decode.acc_seg: 91.0119, loss: 0.0906
+2021-12-30 01:02:23,446 - mmseg - INFO - per class results:
+2021-12-30 01:02:23,446 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.14 | 97.69 |
+|  building  | 68.39 | 80.12 |
++------------+-------+-------+
+2021-12-30 01:02:23,446 - mmseg - INFO - Summary:
+2021-12-30 01:02:23,446 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.61 | 81.77 | 88.9 |
++-------+-------+------+
+2021-12-30 01:02:23,446 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9561, mIoU: 0.8177, mAcc: 0.8890, IoU.background: 0.9514, IoU.building: 0.6839, Acc.background: 0.9769, Acc.building: 0.8012
+2021-12-30 01:02:38,596 - mmseg - INFO - Iter [1550/10000]	lr: 1.000e-04, eta: 0:45:18, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0932, decode.acc_seg: 92.0423, loss: 0.0932
+2021-12-30 01:02:55,891 - mmseg - INFO - Iter [1600/10000]	lr: 1.000e-04, eta: 0:45:08, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0842, decode.acc_seg: 91.7805, loss: 0.0842
+2021-12-30 01:02:56,802 - mmseg - INFO - per class results:
+2021-12-30 01:02:56,802 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.74 | 97.54 |
+|  building  |  66.0 | 78.04 |
++------------+-------+-------+
+2021-12-30 01:02:56,802 - mmseg - INFO - Summary:
+2021-12-30 01:02:56,802 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.23 | 80.37 | 87.79 |
++-------+-------+-------+
+2021-12-30 01:02:56,802 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9523, mIoU: 0.8037, mAcc: 0.8779, IoU.background: 0.9474, IoU.building: 0.6600, Acc.background: 0.9754, Acc.building: 0.7804
+2021-12-30 01:03:11,964 - mmseg - INFO - Iter [1650/10000]	lr: 1.000e-04, eta: 0:44:52, time: 0.321, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0800, decode.acc_seg: 91.4407, loss: 0.0800
+2021-12-30 01:03:27,106 - mmseg - INFO - Iter [1700/10000]	lr: 1.000e-04, eta: 0:44:31, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0882, decode.acc_seg: 91.7960, loss: 0.0882
+2021-12-30 01:03:28,015 - mmseg - INFO - per class results:
+2021-12-30 01:03:28,015 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.92 | 97.41 |
+|  building  | 67.52 | 80.49 |
++------------+-------+-------+
+2021-12-30 01:03:28,015 - mmseg - INFO - Summary:
+2021-12-30 01:03:28,015 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.41 | 81.22 | 88.95 |
++-------+-------+-------+
+2021-12-30 01:03:28,015 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9541, mIoU: 0.8122, mAcc: 0.8895, IoU.background: 0.9492, IoU.building: 0.6752, Acc.background: 0.9741, Acc.building: 0.8049
+2021-12-30 01:03:43,169 - mmseg - INFO - Iter [1750/10000]	lr: 1.000e-04, eta: 0:44:14, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0846, decode.acc_seg: 91.0511, loss: 0.0846
+2021-12-30 01:04:00,397 - mmseg - INFO - Iter [1800/10000]	lr: 1.000e-04, eta: 0:44:04, time: 0.345, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0823, decode.acc_seg: 91.6702, loss: 0.0823
+2021-12-30 01:04:01,414 - mmseg - INFO - per class results:
+2021-12-30 01:04:01,414 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.97 | 97.65 |
+|  building  | 67.29 | 79.02 |
++------------+-------+-------+
+2021-12-30 01:04:01,414 - mmseg - INFO - Summary:
+2021-12-30 01:04:01,414 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.44 | 81.13 | 88.34 |
++-------+-------+-------+
+2021-12-30 01:04:01,414 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9544, mIoU: 0.8113, mAcc: 0.8834, IoU.background: 0.9497, IoU.building: 0.6729, Acc.background: 0.9765, Acc.building: 0.7902
+2021-12-30 01:04:18,844 - mmseg - INFO - Iter [1850/10000]	lr: 1.000e-04, eta: 0:43:58, time: 0.369, data_time: 0.110, memory: 7682, decode.loss_ce: 0.0820, decode.acc_seg: 91.5424, loss: 0.0820
+2021-12-30 01:04:33,986 - mmseg - INFO - Iter [1900/10000]	lr: 1.000e-04, eta: 0:43:37, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0858, decode.acc_seg: 91.5962, loss: 0.0858
+2021-12-30 01:04:34,875 - mmseg - INFO - per class results:
+2021-12-30 01:04:34,875 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.99 | 97.86 |
+|  building  | 66.89 | 77.51 |
++------------+-------+-------+
+2021-12-30 01:04:34,875 - mmseg - INFO - Summary:
+2021-12-30 01:04:34,876 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.45 | 80.94 | 87.69 |
++-------+-------+-------+
+2021-12-30 01:04:34,876 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9545, mIoU: 0.8094, mAcc: 0.8769, IoU.background: 0.9499, IoU.building: 0.6689, Acc.background: 0.9786, Acc.building: 0.7751
+2021-12-30 01:04:50,022 - mmseg - INFO - Iter [1950/10000]	lr: 1.000e-04, eta: 0:43:20, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0800, decode.acc_seg: 92.1283, loss: 0.0800
+2021-12-30 01:05:05,185 - mmseg - INFO - Saving checkpoint at 2000 iterations
+2021-12-30 01:05:05,512 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:05:05,512 - mmseg - INFO - Iter [2000/10000]	lr: 1.000e-04, eta: 0:43:02, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0795, decode.acc_seg: 91.8791, loss: 0.0795
+2021-12-30 01:05:06,447 - mmseg - INFO - per class results:
+2021-12-30 01:05:06,447 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.2 | 97.95 |
+|  building  | 68.16 | 78.53 |
++------------+-------+-------+
+2021-12-30 01:05:06,447 - mmseg - INFO - Summary:
+2021-12-30 01:05:06,447 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.65 | 81.68 | 88.24 |
++-------+-------+-------+
+2021-12-30 01:05:06,447 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:05:06,447 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9565, mIoU: 0.8168, mAcc: 0.8824, IoU.background: 0.9520, IoU.building: 0.6816, Acc.background: 0.9795, Acc.building: 0.7853
+2021-12-30 01:05:21,565 - mmseg - INFO - Iter [2050/10000]	lr: 1.000e-04, eta: 0:42:45, time: 0.321, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0802, decode.acc_seg: 91.7885, loss: 0.0802
+2021-12-30 01:05:38,881 - mmseg - INFO - Iter [2100/10000]	lr: 1.000e-04, eta: 0:42:33, time: 0.346, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0828, decode.acc_seg: 91.8458, loss: 0.0828
+2021-12-30 01:05:39,836 - mmseg - INFO - per class results:
+2021-12-30 01:05:39,836 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.17 | 97.82 |
+|  building  | 68.26 | 79.33 |
++------------+-------+-------+
+2021-12-30 01:05:39,836 - mmseg - INFO - Summary:
+2021-12-30 01:05:39,836 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.62 | 81.71 | 88.57 |
++-------+-------+-------+
+2021-12-30 01:05:39,837 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9562, mIoU: 0.8171, mAcc: 0.8857, IoU.background: 0.9517, IoU.building: 0.6826, Acc.background: 0.9782, Acc.building: 0.7933
+2021-12-30 01:05:54,985 - mmseg - INFO - Iter [2150/10000]	lr: 1.000e-04, eta: 0:42:17, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0792, decode.acc_seg: 91.4224, loss: 0.0792
+2021-12-30 01:06:10,145 - mmseg - INFO - Iter [2200/10000]	lr: 1.000e-04, eta: 0:41:57, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0765, decode.acc_seg: 92.2586, loss: 0.0765
+2021-12-30 01:06:11,052 - mmseg - INFO - per class results:
+2021-12-30 01:06:11,052 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.14 | 97.68 |
+|  building  | 68.34 |  80.1 |
++------------+-------+-------+
+2021-12-30 01:06:11,052 - mmseg - INFO - Summary:
+2021-12-30 01:06:11,052 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 95.6 | 81.74 | 88.89 |
++------+-------+-------+
+2021-12-30 01:06:11,053 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9560, mIoU: 0.8174, mAcc: 0.8889, IoU.background: 0.9514, IoU.building: 0.6834, Acc.background: 0.9768, Acc.building: 0.8010
+2021-12-30 01:06:26,212 - mmseg - INFO - Iter [2250/10000]	lr: 1.000e-04, eta: 0:41:41, time: 0.321, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0825, decode.acc_seg: 91.9721, loss: 0.0825
+2021-12-30 01:06:43,531 - mmseg - INFO - Iter [2300/10000]	lr: 1.000e-04, eta: 0:41:29, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0757, decode.acc_seg: 91.6468, loss: 0.0757
+2021-12-30 01:06:44,502 - mmseg - INFO - per class results:
+2021-12-30 01:06:44,502 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.05 | 97.92 |
+|  building  | 67.18 | 77.58 |
++------------+-------+-------+
+2021-12-30 01:06:44,502 - mmseg - INFO - Summary:
+2021-12-30 01:06:44,503 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 95.5 | 81.12 | 87.75 |
++------+-------+-------+
+2021-12-30 01:06:44,503 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9550, mIoU: 0.8112, mAcc: 0.8775, IoU.background: 0.9505, IoU.building: 0.6718, Acc.background: 0.9792, Acc.building: 0.7758
+2021-12-30 01:06:59,666 - mmseg - INFO - Iter [2350/10000]	lr: 1.000e-04, eta: 0:41:12, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0765, decode.acc_seg: 91.9386, loss: 0.0765
+2021-12-30 01:07:14,802 - mmseg - INFO - Iter [2400/10000]	lr: 1.000e-04, eta: 0:40:53, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0770, decode.acc_seg: 92.5022, loss: 0.0770
+2021-12-30 01:07:15,695 - mmseg - INFO - per class results:
+2021-12-30 01:07:15,696 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.03 | 97.43 |
+|  building  | 68.22 | 81.27 |
++------------+-------+-------+
+2021-12-30 01:07:15,696 - mmseg - INFO - Summary:
+2021-12-30 01:07:15,696 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.51 | 81.63 | 89.35 |
++-------+-------+-------+
+2021-12-30 01:07:15,696 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9551, mIoU: 0.8163, mAcc: 0.8935, IoU.background: 0.9503, IoU.building: 0.6822, Acc.background: 0.9743, Acc.building: 0.8127
+2021-12-30 01:07:30,854 - mmseg - INFO - Iter [2450/10000]	lr: 1.000e-04, eta: 0:40:37, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0746, decode.acc_seg: 92.4218, loss: 0.0746
+2021-12-30 01:07:46,014 - mmseg - INFO - Iter [2500/10000]	lr: 1.000e-04, eta: 0:40:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0751, decode.acc_seg: 91.7697, loss: 0.0751
+2021-12-30 01:07:46,919 - mmseg - INFO - per class results:
+2021-12-30 01:07:46,919 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.12 | 97.79 |
+|  building  |  68.0 | 79.14 |
++------------+-------+-------+
+2021-12-30 01:07:46,919 - mmseg - INFO - Summary:
+2021-12-30 01:07:46,920 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.58 | 81.56 | 88.47 |
++-------+-------+-------+
+2021-12-30 01:07:46,920 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9558, mIoU: 0.8156, mAcc: 0.8847, IoU.background: 0.9512, IoU.building: 0.6800, Acc.background: 0.9779, Acc.building: 0.7914
+2021-12-30 01:08:04,237 - mmseg - INFO - Iter [2550/10000]	lr: 1.000e-04, eta: 0:40:08, time: 0.364, data_time: 0.107, memory: 7682, decode.loss_ce: 0.0758, decode.acc_seg: 91.9678, loss: 0.0758
+2021-12-30 01:08:19,405 - mmseg - INFO - Iter [2600/10000]	lr: 1.000e-04, eta: 0:39:49, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0759, decode.acc_seg: 91.9373, loss: 0.0759
+2021-12-30 01:08:20,333 - mmseg - INFO - per class results:
+2021-12-30 01:08:20,333 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.06 | 97.14 |
+|  building  | 69.11 | 83.79 |
++------------+-------+-------+
+2021-12-30 01:08:20,333 - mmseg - INFO - Summary:
+2021-12-30 01:08:20,333 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.56 | 82.09 | 90.47 |
++-------+-------+-------+
+2021-12-30 01:08:20,333 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9556, mIoU: 0.8209, mAcc: 0.9047, IoU.background: 0.9506, IoU.building: 0.6911, Acc.background: 0.9714, Acc.building: 0.8379
+2021-12-30 01:08:35,497 - mmseg - INFO - Iter [2650/10000]	lr: 1.000e-04, eta: 0:39:32, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0711, decode.acc_seg: 92.1289, loss: 0.0711
+2021-12-30 01:08:50,649 - mmseg - INFO - Iter [2700/10000]	lr: 1.000e-04, eta: 0:39:13, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0751, decode.acc_seg: 91.9188, loss: 0.0751
+2021-12-30 01:08:51,546 - mmseg - INFO - per class results:
+2021-12-30 01:08:51,547 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 94.69 | 97.39 |
+|  building  | 66.03 | 78.86 |
++------------+-------+-------+
+2021-12-30 01:08:51,547 - mmseg - INFO - Summary:
+2021-12-30 01:08:51,547 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.19 | 80.36 | 88.12 |
++-------+-------+-------+
+2021-12-30 01:08:51,547 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9519, mIoU: 0.8036, mAcc: 0.8812, IoU.background: 0.9469, IoU.building: 0.6603, Acc.background: 0.9739, Acc.building: 0.7886
+2021-12-30 01:09:08,839 - mmseg - INFO - Iter [2750/10000]	lr: 1.000e-04, eta: 0:39:03, time: 0.364, data_time: 0.107, memory: 7682, decode.loss_ce: 0.0763, decode.acc_seg: 92.0914, loss: 0.0763
+2021-12-30 01:09:23,986 - mmseg - INFO - Iter [2800/10000]	lr: 1.000e-04, eta: 0:38:44, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0675, decode.acc_seg: 93.0268, loss: 0.0675
+2021-12-30 01:09:24,941 - mmseg - INFO - per class results:
+2021-12-30 01:09:24,941 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.24 | 97.79 |
+|  building  |  68.8 | 80.07 |
++------------+-------+-------+
+2021-12-30 01:09:24,941 - mmseg - INFO - Summary:
+2021-12-30 01:09:24,941 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.69 | 82.02 | 88.93 |
++-------+-------+-------+
+2021-12-30 01:09:24,942 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9569, mIoU: 0.8202, mAcc: 0.8893, IoU.background: 0.9524, IoU.building: 0.6880, Acc.background: 0.9779, Acc.building: 0.8007
+2021-12-30 01:09:40,096 - mmseg - INFO - Iter [2850/10000]	lr: 1.000e-04, eta: 0:38:28, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0708, decode.acc_seg: 92.0506, loss: 0.0708
+2021-12-30 01:09:55,265 - mmseg - INFO - Iter [2900/10000]	lr: 1.000e-04, eta: 0:38:09, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0718, decode.acc_seg: 92.0496, loss: 0.0718
+2021-12-30 01:09:56,227 - mmseg - INFO - per class results:
+2021-12-30 01:09:56,227 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.14 | 97.64 |
+|  building  | 68.52 | 80.55 |
++------------+-------+-------+
+2021-12-30 01:09:56,227 - mmseg - INFO - Summary:
+2021-12-30 01:09:56,228 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.61 | 81.83 | 89.09 |
++-------+-------+-------+
+2021-12-30 01:09:56,228 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9561, mIoU: 0.8183, mAcc: 0.8909, IoU.background: 0.9514, IoU.building: 0.6852, Acc.background: 0.9764, Acc.building: 0.8055
+2021-12-30 01:10:11,381 - mmseg - INFO - Iter [2950/10000]	lr: 1.000e-04, eta: 0:37:53, time: 0.322, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0740, decode.acc_seg: 92.1881, loss: 0.0740
+2021-12-30 01:10:28,678 - mmseg - INFO - Saving checkpoint at 3000 iterations
+2021-12-30 01:10:29,005 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:10:29,005 - mmseg - INFO - Iter [3000/10000]	lr: 1.000e-04, eta: 0:37:40, time: 0.352, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0675, decode.acc_seg: 92.2359, loss: 0.0675
+2021-12-30 01:10:29,934 - mmseg - INFO - per class results:
+2021-12-30 01:10:29,934 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.26 |  97.8 |
+|  building  | 68.91 | 80.16 |
++------------+-------+-------+
+2021-12-30 01:10:29,934 - mmseg - INFO - Summary:
+2021-12-30 01:10:29,934 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.71 | 82.09 | 88.98 |
++-------+-------+-------+
+2021-12-30 01:10:29,935 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:10:29,935 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9571, mIoU: 0.8209, mAcc: 0.8898, IoU.background: 0.9526, IoU.building: 0.6891, Acc.background: 0.9780, Acc.building: 0.8016
+2021-12-30 01:10:45,101 - mmseg - INFO - Iter [3050/10000]	lr: 1.000e-04, eta: 0:37:24, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0714, decode.acc_seg: 92.1257, loss: 0.0714
+2021-12-30 01:11:00,247 - mmseg - INFO - Iter [3100/10000]	lr: 1.000e-04, eta: 0:37:06, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0711, decode.acc_seg: 92.4628, loss: 0.0711
+2021-12-30 01:11:01,191 - mmseg - INFO - per class results:
+2021-12-30 01:11:01,192 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.1 | 97.55 |
+|  building  | 68.43 | 80.89 |
++------------+-------+-------+
+2021-12-30 01:11:01,192 - mmseg - INFO - Summary:
+2021-12-30 01:11:01,192 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.57 | 81.77 | 89.22 |
++-------+-------+-------+
+2021-12-30 01:11:01,192 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9557, mIoU: 0.8177, mAcc: 0.8922, IoU.background: 0.9510, IoU.building: 0.6843, Acc.background: 0.9755, Acc.building: 0.8089
+2021-12-30 01:11:16,339 - mmseg - INFO - Iter [3150/10000]	lr: 1.000e-04, eta: 0:36:50, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0693, decode.acc_seg: 92.6227, loss: 0.0693
+2021-12-30 01:11:33,652 - mmseg - INFO - Iter [3200/10000]	lr: 1.000e-04, eta: 0:36:36, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0710, decode.acc_seg: 92.1421, loss: 0.0710
+2021-12-30 01:11:34,546 - mmseg - INFO - per class results:
+2021-12-30 01:11:34,547 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 97.73 |
+|  building  | 69.13 | 80.77 |
++------------+-------+-------+
+2021-12-30 01:11:34,547 - mmseg - INFO - Summary:
+2021-12-30 01:11:34,547 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.72 | 82.2 | 89.25 |
++-------+------+-------+
+2021-12-30 01:11:34,547 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9572, mIoU: 0.8220, mAcc: 0.8925, IoU.background: 0.9527, IoU.building: 0.6913, Acc.background: 0.9773, Acc.building: 0.8077
+2021-12-30 01:11:49,691 - mmseg - INFO - Iter [3250/10000]	lr: 1.000e-04, eta: 0:36:20, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0738, decode.acc_seg: 92.1777, loss: 0.0738
+2021-12-30 01:12:04,828 - mmseg - INFO - Iter [3300/10000]	lr: 1.000e-04, eta: 0:36:01, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0670, decode.acc_seg: 92.5289, loss: 0.0670
+2021-12-30 01:12:05,723 - mmseg - INFO - per class results:
+2021-12-30 01:12:05,723 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.16 | 97.55 |
+|  building  | 68.82 | 81.33 |
++------------+-------+-------+
+2021-12-30 01:12:05,723 - mmseg - INFO - Summary:
+2021-12-30 01:12:05,723 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.63 | 81.99 | 89.44 |
++-------+-------+-------+
+2021-12-30 01:12:05,723 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9563, mIoU: 0.8199, mAcc: 0.8944, IoU.background: 0.9516, IoU.building: 0.6882, Acc.background: 0.9755, Acc.building: 0.8133
+2021-12-30 01:12:20,889 - mmseg - INFO - Iter [3350/10000]	lr: 1.000e-04, eta: 0:35:45, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0773, decode.acc_seg: 92.0243, loss: 0.0773
+2021-12-30 01:12:36,026 - mmseg - INFO - Iter [3400/10000]	lr: 1.000e-04, eta: 0:35:27, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0678, decode.acc_seg: 92.3715, loss: 0.0678
+2021-12-30 01:12:36,935 - mmseg - INFO - per class results:
+2021-12-30 01:12:36,935 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.17 | 97.82 |
+|  building  | 68.27 | 79.32 |
++------------+-------+-------+
+2021-12-30 01:12:36,935 - mmseg - INFO - Summary:
+2021-12-30 01:12:36,935 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.63 | 81.72 | 88.57 |
++-------+-------+-------+
+2021-12-30 01:12:36,935 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9563, mIoU: 0.8172, mAcc: 0.8857, IoU.background: 0.9517, IoU.building: 0.6827, Acc.background: 0.9782, Acc.building: 0.7932
+2021-12-30 01:12:54,226 - mmseg - INFO - Iter [3450/10000]	lr: 1.000e-04, eta: 0:35:15, time: 0.364, data_time: 0.107, memory: 7682, decode.loss_ce: 0.0715, decode.acc_seg: 92.1524, loss: 0.0715
+2021-12-30 01:13:09,371 - mmseg - INFO - Iter [3500/10000]	lr: 1.000e-04, eta: 0:34:57, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0671, decode.acc_seg: 92.3097, loss: 0.0671
+2021-12-30 01:13:10,258 - mmseg - INFO - per class results:
+2021-12-30 01:13:10,258 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 97.62 |
+|  building  | 69.45 | 81.74 |
++------------+-------+-------+
+2021-12-30 01:13:10,258 - mmseg - INFO - Summary:
+2021-12-30 01:13:10,259 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.73 | 82.36 | 89.68 |
++-------+-------+-------+
+2021-12-30 01:13:10,259 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9573, mIoU: 0.8236, mAcc: 0.8968, IoU.background: 0.9527, IoU.building: 0.6945, Acc.background: 0.9762, Acc.building: 0.8174
+2021-12-30 01:13:25,413 - mmseg - INFO - Iter [3550/10000]	lr: 1.000e-04, eta: 0:34:41, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0693, decode.acc_seg: 92.2477, loss: 0.0693
+2021-12-30 01:13:40,560 - mmseg - INFO - Iter [3600/10000]	lr: 1.000e-04, eta: 0:34:23, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0682, decode.acc_seg: 92.5778, loss: 0.0682
+2021-12-30 01:13:41,488 - mmseg - INFO - per class results:
+2021-12-30 01:13:41,488 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.23 | 97.88 |
+|  building  | 68.57 | 79.36 |
++------------+-------+-------+
+2021-12-30 01:13:41,488 - mmseg - INFO - Summary:
+2021-12-30 01:13:41,488 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.68 | 81.9 | 88.62 |
++-------+------+-------+
+2021-12-30 01:13:41,488 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9568, mIoU: 0.8190, mAcc: 0.8862, IoU.background: 0.9523, IoU.building: 0.6857, Acc.background: 0.9788, Acc.building: 0.7936
+2021-12-30 01:13:58,790 - mmseg - INFO - Iter [3650/10000]	lr: 1.000e-04, eta: 0:34:10, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0661, decode.acc_seg: 92.1576, loss: 0.0661
+2021-12-30 01:14:13,947 - mmseg - INFO - Iter [3700/10000]	lr: 1.000e-04, eta: 0:33:52, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0650, decode.acc_seg: 93.0400, loss: 0.0650
+2021-12-30 01:14:14,838 - mmseg - INFO - per class results:
+2021-12-30 01:14:14,838 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.22 | 97.76 |
+|  building  | 68.73 | 80.16 |
++------------+-------+-------+
+2021-12-30 01:14:14,838 - mmseg - INFO - Summary:
+2021-12-30 01:14:14,838 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.67 | 81.97 | 88.96 |
++-------+-------+-------+
+2021-12-30 01:14:14,839 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9567, mIoU: 0.8197, mAcc: 0.8896, IoU.background: 0.9522, IoU.building: 0.6873, Acc.background: 0.9776, Acc.building: 0.8016
+2021-12-30 01:14:29,981 - mmseg - INFO - Iter [3750/10000]	lr: 1.000e-04, eta: 0:33:36, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0698, decode.acc_seg: 92.3003, loss: 0.0698
+2021-12-30 01:14:45,139 - mmseg - INFO - Iter [3800/10000]	lr: 1.000e-04, eta: 0:33:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0643, decode.acc_seg: 91.9875, loss: 0.0643
+2021-12-30 01:14:46,094 - mmseg - INFO - per class results:
+2021-12-30 01:14:46,095 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.31 | 97.98 |
+|  building  | 68.85 | 79.17 |
++------------+-------+-------+
+2021-12-30 01:14:46,095 - mmseg - INFO - Summary:
+2021-12-30 01:14:46,095 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.75 | 82.08 | 88.58 |
++-------+-------+-------+
+2021-12-30 01:14:46,095 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9575, mIoU: 0.8208, mAcc: 0.8858, IoU.background: 0.9531, IoU.building: 0.6885, Acc.background: 0.9798, Acc.building: 0.7917
+2021-12-30 01:15:01,248 - mmseg - INFO - Iter [3850/10000]	lr: 1.000e-04, eta: 0:33:02, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0612, decode.acc_seg: 92.5910, loss: 0.0612
+2021-12-30 01:15:18,738 - mmseg - INFO - Iter [3900/10000]	lr: 1.000e-04, eta: 0:32:48, time: 0.350, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0664, decode.acc_seg: 92.4352, loss: 0.0664
+2021-12-30 01:15:19,694 - mmseg - INFO - per class results:
+2021-12-30 01:15:19,694 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.26 | 97.76 |
+|  building  | 69.01 | 80.49 |
++------------+-------+-------+
+2021-12-30 01:15:19,695 - mmseg - INFO - Summary:
+2021-12-30 01:15:19,695 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.71 | 82.13 | 89.13 |
++-------+-------+-------+
+2021-12-30 01:15:19,695 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9571, mIoU: 0.8213, mAcc: 0.8913, IoU.background: 0.9526, IoU.building: 0.6901, Acc.background: 0.9776, Acc.building: 0.8049
+2021-12-30 01:15:36,661 - mmseg - INFO - Iter [3950/10000]	lr: 1.000e-04, eta: 0:32:35, time: 0.358, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0649, decode.acc_seg: 92.5578, loss: 0.0649
+2021-12-30 01:15:52,428 - mmseg - INFO - Saving checkpoint at 4000 iterations
+2021-12-30 01:15:52,759 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:15:52,759 - mmseg - INFO - Iter [4000/10000]	lr: 1.000e-04, eta: 0:32:19, time: 0.322, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0632, decode.acc_seg: 92.6434, loss: 0.0632
+2021-12-30 01:15:53,692 - mmseg - INFO - per class results:
+2021-12-30 01:15:53,692 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.28 | 97.53 |
+|  building  |  69.7 |  82.5 |
++------------+-------+-------+
+2021-12-30 01:15:53,692 - mmseg - INFO - Summary:
+2021-12-30 01:15:53,692 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.74 | 82.49 | 90.01 |
++-------+-------+-------+
+2021-12-30 01:15:53,692 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:15:53,692 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9574, mIoU: 0.8249, mAcc: 0.9001, IoU.background: 0.9528, IoU.building: 0.6970, Acc.background: 0.9753, Acc.building: 0.8250
+2021-12-30 01:16:08,849 - mmseg - INFO - Iter [4050/10000]	lr: 1.000e-04, eta: 0:32:02, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0662, decode.acc_seg: 92.7347, loss: 0.0662
+2021-12-30 01:16:23,976 - mmseg - INFO - Iter [4100/10000]	lr: 1.000e-04, eta: 0:31:45, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0616, decode.acc_seg: 93.0339, loss: 0.0616
+2021-12-30 01:16:24,905 - mmseg - INFO - per class results:
+2021-12-30 01:16:24,905 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 98.05 |
+|  building  | 68.43 | 78.36 |
++------------+-------+-------+
+2021-12-30 01:16:24,905 - mmseg - INFO - Summary:
+2021-12-30 01:16:24,905 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.71 | 81.85 | 88.2 |
++-------+-------+------+
+2021-12-30 01:16:24,905 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9571, mIoU: 0.8185, mAcc: 0.8820, IoU.background: 0.9527, IoU.building: 0.6843, Acc.background: 0.9805, Acc.building: 0.7836
+2021-12-30 01:16:42,208 - mmseg - INFO - Iter [4150/10000]	lr: 1.000e-04, eta: 0:31:32, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0645, decode.acc_seg: 92.8591, loss: 0.0645
+2021-12-30 01:16:57,372 - mmseg - INFO - Iter [4200/10000]	lr: 1.000e-04, eta: 0:31:14, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0603, decode.acc_seg: 92.6211, loss: 0.0603
+2021-12-30 01:16:58,332 - mmseg - INFO - per class results:
+2021-12-30 01:16:58,332 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 97.59 |
+|  building  | 69.45 |  81.9 |
++------------+-------+-------+
+2021-12-30 01:16:58,332 - mmseg - INFO - Summary:
+2021-12-30 01:16:58,332 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.73 | 82.36 | 89.74 |
++-------+-------+-------+
+2021-12-30 01:16:58,332 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9573, mIoU: 0.8236, mAcc: 0.8974, IoU.background: 0.9527, IoU.building: 0.6945, Acc.background: 0.9759, Acc.building: 0.8190
+2021-12-30 01:17:13,502 - mmseg - INFO - Iter [4250/10000]	lr: 1.000e-04, eta: 0:30:58, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0631, decode.acc_seg: 92.5298, loss: 0.0631
+2021-12-30 01:17:28,668 - mmseg - INFO - Iter [4300/10000]	lr: 1.000e-04, eta: 0:30:40, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0631, decode.acc_seg: 92.9441, loss: 0.0631
+2021-12-30 01:17:29,575 - mmseg - INFO - per class results:
+2021-12-30 01:17:29,575 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.29 | 97.74 |
+|  building  | 69.25 | 80.89 |
++------------+-------+-------+
+2021-12-30 01:17:29,575 - mmseg - INFO - Summary:
+2021-12-30 01:17:29,576 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.74 | 82.27 | 89.31 |
++-------+-------+-------+
+2021-12-30 01:17:29,576 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9574, mIoU: 0.8227, mAcc: 0.8931, IoU.background: 0.9529, IoU.building: 0.6925, Acc.background: 0.9774, Acc.building: 0.8089
+2021-12-30 01:17:46,904 - mmseg - INFO - Iter [4350/10000]	lr: 1.000e-04, eta: 0:30:27, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0644, decode.acc_seg: 92.3184, loss: 0.0644
+2021-12-30 01:18:02,071 - mmseg - INFO - Iter [4400/10000]	lr: 1.000e-04, eta: 0:30:09, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0615, decode.acc_seg: 92.3733, loss: 0.0615
+2021-12-30 01:18:03,023 - mmseg - INFO - per class results:
+2021-12-30 01:18:03,023 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.17 | 97.18 |
+|  building  |  69.7 |  84.3 |
++------------+-------+-------+
+2021-12-30 01:18:03,023 - mmseg - INFO - Summary:
+2021-12-30 01:18:03,023 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.65 | 82.44 | 90.74 |
++-------+-------+-------+
+2021-12-30 01:18:03,023 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9565, mIoU: 0.8244, mAcc: 0.9074, IoU.background: 0.9517, IoU.building: 0.6970, Acc.background: 0.9718, Acc.building: 0.8430
+2021-12-30 01:18:18,194 - mmseg - INFO - Iter [4450/10000]	lr: 1.000e-04, eta: 0:29:53, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0606, decode.acc_seg: 92.8845, loss: 0.0606
+2021-12-30 01:18:33,349 - mmseg - INFO - Iter [4500/10000]	lr: 1.000e-04, eta: 0:29:36, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0640, decode.acc_seg: 92.2352, loss: 0.0640
+2021-12-30 01:18:34,259 - mmseg - INFO - per class results:
+2021-12-30 01:18:34,259 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 97.75 |
+|  building  |  69.1 | 80.65 |
++------------+-------+-------+
+2021-12-30 01:18:34,259 - mmseg - INFO - Summary:
+2021-12-30 01:18:34,259 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.72 | 82.18 | 89.2 |
++-------+-------+------+
+2021-12-30 01:18:34,259 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9572, mIoU: 0.8218, mAcc: 0.8920, IoU.background: 0.9527, IoU.building: 0.6910, Acc.background: 0.9775, Acc.building: 0.8065
+2021-12-30 01:18:49,404 - mmseg - INFO - Iter [4550/10000]	lr: 1.000e-04, eta: 0:29:20, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0636, decode.acc_seg: 92.6424, loss: 0.0636
+2021-12-30 01:19:06,720 - mmseg - INFO - Iter [4600/10000]	lr: 1.000e-04, eta: 0:29:05, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0613, decode.acc_seg: 92.6928, loss: 0.0613
+2021-12-30 01:19:07,680 - mmseg - INFO - per class results:
+2021-12-30 01:19:07,681 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.31 | 97.74 |
+|  building  | 69.38 | 81.02 |
++------------+-------+-------+
+2021-12-30 01:19:07,681 - mmseg - INFO - Summary:
+2021-12-30 01:19:07,681 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.76 | 82.34 | 89.38 |
++-------+-------+-------+
+2021-12-30 01:19:07,681 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9576, mIoU: 0.8234, mAcc: 0.8938, IoU.background: 0.9531, IoU.building: 0.6938, Acc.background: 0.9774, Acc.building: 0.8102
+2021-12-30 01:19:22,824 - mmseg - INFO - Iter [4650/10000]	lr: 1.000e-04, eta: 0:28:49, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0632, decode.acc_seg: 92.4661, loss: 0.0632
+2021-12-30 01:19:37,997 - mmseg - INFO - Iter [4700/10000]	lr: 1.000e-04, eta: 0:28:31, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0559, decode.acc_seg: 93.6278, loss: 0.0559
+2021-12-30 01:19:38,910 - mmseg - INFO - per class results:
+2021-12-30 01:19:38,910 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.29 | 97.62 |
+|  building  | 69.57 | 81.88 |
++------------+-------+-------+
+2021-12-30 01:19:38,910 - mmseg - INFO - Summary:
+2021-12-30 01:19:38,910 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.75 | 82.43 | 89.75 |
++-------+-------+-------+
+2021-12-30 01:19:38,910 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9575, mIoU: 0.8243, mAcc: 0.8975, IoU.background: 0.9529, IoU.building: 0.6957, Acc.background: 0.9762, Acc.building: 0.8188
+2021-12-30 01:19:54,072 - mmseg - INFO - Iter [4750/10000]	lr: 1.000e-04, eta: 0:28:15, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0641, decode.acc_seg: 92.6777, loss: 0.0641
+2021-12-30 01:20:11,361 - mmseg - INFO - Iter [4800/10000]	lr: 1.000e-04, eta: 0:28:00, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0591, decode.acc_seg: 92.9293, loss: 0.0591
+2021-12-30 01:20:12,277 - mmseg - INFO - per class results:
+2021-12-30 01:20:12,277 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.44 | 97.77 |
+|  building  | 70.24 |  81.9 |
++------------+-------+-------+
+2021-12-30 01:20:12,277 - mmseg - INFO - Summary:
+2021-12-30 01:20:12,278 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.88 | 82.84 | 89.83 |
++-------+-------+-------+
+2021-12-30 01:20:12,278 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9588, mIoU: 0.8284, mAcc: 0.8983, IoU.background: 0.9544, IoU.building: 0.7024, Acc.background: 0.9777, Acc.building: 0.8190
+2021-12-30 01:20:27,440 - mmseg - INFO - Iter [4850/10000]	lr: 1.000e-04, eta: 0:27:44, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0600, decode.acc_seg: 92.3448, loss: 0.0600
+2021-12-30 01:20:42,593 - mmseg - INFO - Iter [4900/10000]	lr: 1.000e-04, eta: 0:27:27, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0609, decode.acc_seg: 92.7505, loss: 0.0609
+2021-12-30 01:20:43,574 - mmseg - INFO - per class results:
+2021-12-30 01:20:43,574 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.27 | 97.76 |
+|  building  | 69.13 | 80.66 |
++------------+-------+-------+
+2021-12-30 01:20:43,574 - mmseg - INFO - Summary:
+2021-12-30 01:20:43,574 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.73 | 82.2 | 89.21 |
++-------+------+-------+
+2021-12-30 01:20:43,575 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9573, mIoU: 0.8220, mAcc: 0.8921, IoU.background: 0.9527, IoU.building: 0.6913, Acc.background: 0.9776, Acc.building: 0.8066
+2021-12-30 01:20:58,725 - mmseg - INFO - Iter [4950/10000]	lr: 1.000e-04, eta: 0:27:11, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0586, decode.acc_seg: 93.1448, loss: 0.0586
+2021-12-30 01:21:13,872 - mmseg - INFO - Saving checkpoint at 5000 iterations
+2021-12-30 01:21:14,235 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:21:14,236 - mmseg - INFO - Iter [5000/10000]	lr: 1.000e-04, eta: 0:26:54, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0589, decode.acc_seg: 92.4817, loss: 0.0589
+2021-12-30 01:21:15,245 - mmseg - INFO - per class results:
+2021-12-30 01:21:15,245 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.26 | 97.86 |
+|  building  | 68.81 | 79.74 |
++------------+-------+-------+
+2021-12-30 01:21:15,245 - mmseg - INFO - Summary:
+2021-12-30 01:21:15,245 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.71 | 82.04 | 88.8 |
++-------+-------+------+
+2021-12-30 01:21:15,245 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:21:15,245 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9571, mIoU: 0.8204, mAcc: 0.8880, IoU.background: 0.9526, IoU.building: 0.6881, Acc.background: 0.9786, Acc.building: 0.7974
+2021-12-30 01:21:32,531 - mmseg - INFO - Iter [5050/10000]	lr: 1.000e-04, eta: 0:26:40, time: 0.366, data_time: 0.109, memory: 7682, decode.loss_ce: 0.0596, decode.acc_seg: 92.8136, loss: 0.0596
+2021-12-30 01:21:47,693 - mmseg - INFO - Iter [5100/10000]	lr: 1.000e-04, eta: 0:26:23, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0566, decode.acc_seg: 92.8174, loss: 0.0566
+2021-12-30 01:21:48,629 - mmseg - INFO - per class results:
+2021-12-30 01:21:48,629 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.33 | 97.62 |
+|  building  | 69.78 |  82.1 |
++------------+-------+-------+
+2021-12-30 01:21:48,629 - mmseg - INFO - Summary:
+2021-12-30 01:21:48,629 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.78 | 82.55 | 89.86 |
++-------+-------+-------+
+2021-12-30 01:21:48,629 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9578, mIoU: 0.8255, mAcc: 0.8986, IoU.background: 0.9533, IoU.building: 0.6978, Acc.background: 0.9762, Acc.building: 0.8210
+2021-12-30 01:22:03,810 - mmseg - INFO - Iter [5150/10000]	lr: 1.000e-04, eta: 0:26:06, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0623, decode.acc_seg: 92.5315, loss: 0.0623
+2021-12-30 01:22:18,976 - mmseg - INFO - Iter [5200/10000]	lr: 1.000e-04, eta: 0:25:49, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0575, decode.acc_seg: 93.0606, loss: 0.0575
+2021-12-30 01:22:19,902 - mmseg - INFO - per class results:
+2021-12-30 01:22:19,902 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.4 | 97.64 |
+|  building  | 70.28 | 82.61 |
++------------+-------+-------+
+2021-12-30 01:22:19,902 - mmseg - INFO - Summary:
+2021-12-30 01:22:19,902 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.86 | 82.84 | 90.13 |
++-------+-------+-------+
+2021-12-30 01:22:19,902 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9586, mIoU: 0.8284, mAcc: 0.9013, IoU.background: 0.9540, IoU.building: 0.7028, Acc.background: 0.9764, Acc.building: 0.8261
+2021-12-30 01:22:37,225 - mmseg - INFO - Iter [5250/10000]	lr: 1.000e-04, eta: 0:25:35, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0578, decode.acc_seg: 92.8075, loss: 0.0578
+2021-12-30 01:22:52,373 - mmseg - INFO - Iter [5300/10000]	lr: 1.000e-04, eta: 0:25:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0603, decode.acc_seg: 92.8103, loss: 0.0603
+2021-12-30 01:22:53,287 - mmseg - INFO - per class results:
+2021-12-30 01:22:53,288 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.41 | 97.61 |
+|  building  | 70.36 | 82.88 |
++------------+-------+-------+
+2021-12-30 01:22:53,288 - mmseg - INFO - Summary:
+2021-12-30 01:22:53,288 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.86 | 82.89 | 90.24 |
++-------+-------+-------+
+2021-12-30 01:22:53,288 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9586, mIoU: 0.8289, mAcc: 0.9024, IoU.background: 0.9541, IoU.building: 0.7036, Acc.background: 0.9761, Acc.building: 0.8288
+2021-12-30 01:23:08,446 - mmseg - INFO - Iter [5350/10000]	lr: 1.000e-04, eta: 0:25:02, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0565, decode.acc_seg: 92.7245, loss: 0.0565
+2021-12-30 01:23:23,618 - mmseg - INFO - Iter [5400/10000]	lr: 1.000e-04, eta: 0:24:45, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0561, decode.acc_seg: 92.6026, loss: 0.0561
+2021-12-30 01:23:24,497 - mmseg - INFO - per class results:
+2021-12-30 01:23:24,497 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.44 | 97.66 |
+|  building  | 70.49 | 82.75 |
++------------+-------+-------+
+2021-12-30 01:23:24,497 - mmseg - INFO - Summary:
+2021-12-30 01:23:24,498 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.89 | 82.96 | 90.2 |
++-------+-------+------+
+2021-12-30 01:23:24,498 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9589, mIoU: 0.8296, mAcc: 0.9020, IoU.background: 0.9544, IoU.building: 0.7049, Acc.background: 0.9766, Acc.building: 0.8275
+2021-12-30 01:23:39,659 - mmseg - INFO - Iter [5450/10000]	lr: 1.000e-04, eta: 0:24:29, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0578, decode.acc_seg: 92.5646, loss: 0.0578
+2021-12-30 01:23:56,980 - mmseg - INFO - Iter [5500/10000]	lr: 1.000e-04, eta: 0:24:13, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0612, decode.acc_seg: 92.1396, loss: 0.0612
+2021-12-30 01:23:57,952 - mmseg - INFO - per class results:
+2021-12-30 01:23:57,952 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.42 | 97.64 |
+|  building  | 70.39 | 82.75 |
++------------+-------+-------+
+2021-12-30 01:23:57,952 - mmseg - INFO - Summary:
+2021-12-30 01:23:57,952 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.87 | 82.91 | 90.2 |
++-------+-------+------+
+2021-12-30 01:23:57,952 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9587, mIoU: 0.8291, mAcc: 0.9020, IoU.background: 0.9542, IoU.building: 0.7039, Acc.background: 0.9764, Acc.building: 0.8275
+2021-12-30 01:24:13,106 - mmseg - INFO - Iter [5550/10000]	lr: 1.000e-04, eta: 0:23:57, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0584, decode.acc_seg: 92.7003, loss: 0.0584
+2021-12-30 01:24:28,266 - mmseg - INFO - Iter [5600/10000]	lr: 1.000e-04, eta: 0:23:40, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0547, decode.acc_seg: 92.6776, loss: 0.0547
+2021-12-30 01:24:29,142 - mmseg - INFO - per class results:
+2021-12-30 01:24:29,142 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.47 | 97.87 |
+|  building  | 70.23 | 81.33 |
++------------+-------+-------+
+2021-12-30 01:24:29,142 - mmseg - INFO - Summary:
+2021-12-30 01:24:29,142 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.91 | 82.85 | 89.6 |
++-------+-------+------+
+2021-12-30 01:24:29,143 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9591, mIoU: 0.8285, mAcc: 0.8960, IoU.background: 0.9547, IoU.building: 0.7023, Acc.background: 0.9787, Acc.building: 0.8133
+2021-12-30 01:24:44,299 - mmseg - INFO - Iter [5650/10000]	lr: 1.000e-04, eta: 0:23:24, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0538, decode.acc_seg: 93.1776, loss: 0.0538
+2021-12-30 01:25:01,806 - mmseg - INFO - Iter [5700/10000]	lr: 1.000e-04, eta: 0:23:09, time: 0.350, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0595, decode.acc_seg: 92.2986, loss: 0.0595
+2021-12-30 01:25:02,799 - mmseg - INFO - per class results:
+2021-12-30 01:25:02,799 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.42 | 97.67 |
+|  building  |  70.3 | 82.46 |
++------------+-------+-------+
+2021-12-30 01:25:02,799 - mmseg - INFO - Summary:
+2021-12-30 01:25:02,799 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.87 | 82.86 | 90.07 |
++-------+-------+-------+
+2021-12-30 01:25:02,799 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9587, mIoU: 0.8286, mAcc: 0.9007, IoU.background: 0.9542, IoU.building: 0.7030, Acc.background: 0.9767, Acc.building: 0.8246
+2021-12-30 01:25:19,944 - mmseg - INFO - Iter [5750/10000]	lr: 1.000e-04, eta: 0:22:54, time: 0.363, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0593, decode.acc_seg: 92.6120, loss: 0.0593
+2021-12-30 01:25:35,095 - mmseg - INFO - Iter [5800/10000]	lr: 1.000e-04, eta: 0:22:37, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0546, decode.acc_seg: 93.2974, loss: 0.0546
+2021-12-30 01:25:36,010 - mmseg - INFO - per class results:
+2021-12-30 01:25:36,010 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.33 |  97.6 |
+|  building  | 69.84 | 82.27 |
++------------+-------+-------+
+2021-12-30 01:25:36,010 - mmseg - INFO - Summary:
+2021-12-30 01:25:36,010 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.78 | 82.58 | 89.94 |
++-------+-------+-------+
+2021-12-30 01:25:36,010 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9578, mIoU: 0.8258, mAcc: 0.8994, IoU.background: 0.9533, IoU.building: 0.6984, Acc.background: 0.9760, Acc.building: 0.8227
+2021-12-30 01:25:51,170 - mmseg - INFO - Iter [5850/10000]	lr: 1.000e-04, eta: 0:22:21, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0588, decode.acc_seg: 92.9145, loss: 0.0588
+2021-12-30 01:26:06,338 - mmseg - INFO - Iter [5900/10000]	lr: 1.000e-04, eta: 0:22:04, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0562, decode.acc_seg: 92.6734, loss: 0.0562
+2021-12-30 01:26:07,244 - mmseg - INFO - per class results:
+2021-12-30 01:26:07,245 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.31 | 97.33 |
+|  building  | 70.32 | 84.28 |
++------------+-------+-------+
+2021-12-30 01:26:07,245 - mmseg - INFO - Summary:
+2021-12-30 01:26:07,245 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.78 | 82.81 | 90.8 |
++-------+-------+------+
+2021-12-30 01:26:07,245 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9578, mIoU: 0.8281, mAcc: 0.9080, IoU.background: 0.9531, IoU.building: 0.7032, Acc.background: 0.9733, Acc.building: 0.8428
+2021-12-30 01:26:24,573 - mmseg - INFO - Iter [5950/10000]	lr: 1.000e-04, eta: 0:21:49, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0551, decode.acc_seg: 92.8451, loss: 0.0551
+2021-12-30 01:26:39,736 - mmseg - INFO - Saving checkpoint at 6000 iterations
+2021-12-30 01:26:40,062 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:26:40,062 - mmseg - INFO - Iter [6000/10000]	lr: 1.000e-04, eta: 0:21:33, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0566, decode.acc_seg: 93.2243, loss: 0.0566
+2021-12-30 01:26:41,002 - mmseg - INFO - per class results:
+2021-12-30 01:26:41,002 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.34 | 97.67 |
+|  building  | 69.79 | 81.86 |
++------------+-------+-------+
+2021-12-30 01:26:41,002 - mmseg - INFO - Summary:
+2021-12-30 01:26:41,002 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.79 | 82.56 | 89.76 |
++-------+-------+-------+
+2021-12-30 01:26:41,002 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:26:41,002 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9579, mIoU: 0.8256, mAcc: 0.8976, IoU.background: 0.9534, IoU.building: 0.6979, Acc.background: 0.9767, Acc.building: 0.8186
+2021-12-30 01:26:56,162 - mmseg - INFO - Iter [6050/10000]	lr: 1.000e-04, eta: 0:21:17, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0550, decode.acc_seg: 92.8824, loss: 0.0550
+2021-12-30 01:27:11,319 - mmseg - INFO - Iter [6100/10000]	lr: 1.000e-04, eta: 0:21:00, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0531, decode.acc_seg: 92.8563, loss: 0.0531
+2021-12-30 01:27:12,206 - mmseg - INFO - per class results:
+2021-12-30 01:27:12,206 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.32 | 97.65 |
+|  building  | 69.67 | 81.85 |
++------------+-------+-------+
+2021-12-30 01:27:12,206 - mmseg - INFO - Summary:
+2021-12-30 01:27:12,206 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.77 | 82.49 | 89.75 |
++-------+-------+-------+
+2021-12-30 01:27:12,206 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9577, mIoU: 0.8249, mAcc: 0.8975, IoU.background: 0.9532, IoU.building: 0.6967, Acc.background: 0.9765, Acc.building: 0.8185
+2021-12-30 01:27:27,359 - mmseg - INFO - Iter [6150/10000]	lr: 1.000e-04, eta: 0:20:44, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0547, decode.acc_seg: 93.5323, loss: 0.0547
+2021-12-30 01:27:44,682 - mmseg - INFO - Iter [6200/10000]	lr: 1.000e-04, eta: 0:20:28, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0565, decode.acc_seg: 92.8244, loss: 0.0565
+2021-12-30 01:27:45,618 - mmseg - INFO - per class results:
+2021-12-30 01:27:45,618 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.74 |
+|  building  | 70.58 | 82.44 |
++------------+-------+-------+
+2021-12-30 01:27:45,619 - mmseg - INFO - Summary:
+2021-12-30 01:27:45,619 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.92 | 83.03 | 90.09 |
++-------+-------+-------+
+2021-12-30 01:27:45,619 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9592, mIoU: 0.8303, mAcc: 0.9009, IoU.background: 0.9548, IoU.building: 0.7058, Acc.background: 0.9774, Acc.building: 0.8244
+2021-12-30 01:28:00,797 - mmseg - INFO - Iter [6250/10000]	lr: 1.000e-04, eta: 0:20:12, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0529, decode.acc_seg: 93.0262, loss: 0.0529
+2021-12-30 01:28:15,962 - mmseg - INFO - Iter [6300/10000]	lr: 1.000e-04, eta: 0:19:55, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0558, decode.acc_seg: 93.3991, loss: 0.0558
+2021-12-30 01:28:16,852 - mmseg - INFO - per class results:
+2021-12-30 01:28:16,853 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.41 | 97.67 |
+|  building  | 70.29 | 82.47 |
++------------+-------+-------+
+2021-12-30 01:28:16,853 - mmseg - INFO - Summary:
+2021-12-30 01:28:16,853 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.86 | 82.85 | 90.07 |
++-------+-------+-------+
+2021-12-30 01:28:16,853 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9586, mIoU: 0.8285, mAcc: 0.9007, IoU.background: 0.9541, IoU.building: 0.7029, Acc.background: 0.9767, Acc.building: 0.8247
+2021-12-30 01:28:32,028 - mmseg - INFO - Iter [6350/10000]	lr: 1.000e-04, eta: 0:19:39, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0520, decode.acc_seg: 93.2466, loss: 0.0520
+2021-12-30 01:28:49,340 - mmseg - INFO - Iter [6400/10000]	lr: 1.000e-04, eta: 0:19:23, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0520, decode.acc_seg: 93.2126, loss: 0.0520
+2021-12-30 01:28:50,239 - mmseg - INFO - per class results:
+2021-12-30 01:28:50,240 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.4 | 97.54 |
+|  building  | 70.44 | 83.31 |
++------------+-------+-------+
+2021-12-30 01:28:50,240 - mmseg - INFO - Summary:
+2021-12-30 01:28:50,240 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.85 | 82.92 | 90.43 |
++-------+-------+-------+
+2021-12-30 01:28:50,240 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9585, mIoU: 0.8292, mAcc: 0.9043, IoU.background: 0.9540, IoU.building: 0.7044, Acc.background: 0.9754, Acc.building: 0.8331
+2021-12-30 01:29:05,428 - mmseg - INFO - Iter [6450/10000]	lr: 1.000e-04, eta: 0:19:07, time: 0.322, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0562, decode.acc_seg: 93.0350, loss: 0.0562
+2021-12-30 01:29:20,603 - mmseg - INFO - Iter [6500/10000]	lr: 1.000e-04, eta: 0:18:51, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0523, decode.acc_seg: 93.0629, loss: 0.0523
+2021-12-30 01:29:21,534 - mmseg - INFO - per class results:
+2021-12-30 01:29:21,534 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.4 | 97.61 |
+|  building  | 70.27 | 82.72 |
++------------+-------+-------+
+2021-12-30 01:29:21,534 - mmseg - INFO - Summary:
+2021-12-30 01:29:21,534 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.85 | 82.83 | 90.17 |
++-------+-------+-------+
+2021-12-30 01:29:21,534 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9585, mIoU: 0.8283, mAcc: 0.9017, IoU.background: 0.9540, IoU.building: 0.7027, Acc.background: 0.9761, Acc.building: 0.8272
+2021-12-30 01:29:36,707 - mmseg - INFO - Iter [6550/10000]	lr: 1.000e-04, eta: 0:18:34, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0513, decode.acc_seg: 93.3973, loss: 0.0513
+2021-12-30 01:29:51,882 - mmseg - INFO - Iter [6600/10000]	lr: 1.000e-04, eta: 0:18:18, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0565, decode.acc_seg: 93.1198, loss: 0.0565
+2021-12-30 01:29:52,900 - mmseg - INFO - per class results:
+2021-12-30 01:29:52,900 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.42 | 97.47 |
+|  building  | 70.71 | 83.98 |
++------------+-------+-------+
+2021-12-30 01:29:52,900 - mmseg - INFO - Summary:
+2021-12-30 01:29:52,900 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.87 | 83.06 | 90.73 |
++-------+-------+-------+
+2021-12-30 01:29:52,900 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9587, mIoU: 0.8306, mAcc: 0.9073, IoU.background: 0.9542, IoU.building: 0.7071, Acc.background: 0.9747, Acc.building: 0.8398
+2021-12-30 01:30:10,225 - mmseg - INFO - Iter [6650/10000]	lr: 1.000e-04, eta: 0:18:03, time: 0.367, data_time: 0.110, memory: 7682, decode.loss_ce: 0.0511, decode.acc_seg: 93.0146, loss: 0.0511
+2021-12-30 01:30:25,383 - mmseg - INFO - Iter [6700/10000]	lr: 1.000e-04, eta: 0:17:46, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0556, decode.acc_seg: 93.0226, loss: 0.0556
+2021-12-30 01:30:26,289 - mmseg - INFO - per class results:
+2021-12-30 01:30:26,290 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.41 | 97.67 |
+|  building  | 70.23 |  82.4 |
++------------+-------+-------+
+2021-12-30 01:30:26,290 - mmseg - INFO - Summary:
+2021-12-30 01:30:26,290 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.85 | 82.82 | 90.03 |
++-------+-------+-------+
+2021-12-30 01:30:26,290 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9585, mIoU: 0.8282, mAcc: 0.9003, IoU.background: 0.9541, IoU.building: 0.7023, Acc.background: 0.9767, Acc.building: 0.8240
+2021-12-30 01:30:41,462 - mmseg - INFO - Iter [6750/10000]	lr: 1.000e-04, eta: 0:17:30, time: 0.322, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0510, decode.acc_seg: 93.5899, loss: 0.0510
+2021-12-30 01:30:56,640 - mmseg - INFO - Iter [6800/10000]	lr: 1.000e-04, eta: 0:17:13, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0556, decode.acc_seg: 92.7996, loss: 0.0556
+2021-12-30 01:30:57,548 - mmseg - INFO - per class results:
+2021-12-30 01:30:57,549 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.39 | 97.84 |
+|  building  | 69.76 | 80.95 |
++------------+-------+-------+
+2021-12-30 01:30:57,549 - mmseg - INFO - Summary:
+2021-12-30 01:30:57,549 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.84 | 82.58 | 89.4 |
++-------+-------+------+
+2021-12-30 01:30:57,549 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9584, mIoU: 0.8258, mAcc: 0.8940, IoU.background: 0.9539, IoU.building: 0.6976, Acc.background: 0.9784, Acc.building: 0.8095
+2021-12-30 01:31:14,974 - mmseg - INFO - Iter [6850/10000]	lr: 1.000e-04, eta: 0:16:58, time: 0.367, data_time: 0.107, memory: 7682, decode.loss_ce: 0.0498, decode.acc_seg: 93.0484, loss: 0.0498
+2021-12-30 01:31:30,211 - mmseg - INFO - Iter [6900/10000]	lr: 1.000e-04, eta: 0:16:41, time: 0.305, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0547, decode.acc_seg: 93.4101, loss: 0.0547
+2021-12-30 01:31:31,126 - mmseg - INFO - per class results:
+2021-12-30 01:31:31,126 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.83 |
+|  building  | 70.41 | 81.77 |
++------------+-------+-------+
+2021-12-30 01:31:31,126 - mmseg - INFO - Summary:
+2021-12-30 01:31:31,127 - mmseg - INFO - 
++-------+-------+------+
+|  aAcc |  mIoU | mAcc |
++-------+-------+------+
+| 95.92 | 82.95 | 89.8 |
++-------+-------+------+
+2021-12-30 01:31:31,127 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9592, mIoU: 0.8295, mAcc: 0.8980, IoU.background: 0.9548, IoU.building: 0.7041, Acc.background: 0.9783, Acc.building: 0.8177
+2021-12-30 01:31:46,299 - mmseg - INFO - Iter [6950/10000]	lr: 1.000e-04, eta: 0:16:25, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0544, decode.acc_seg: 92.9626, loss: 0.0544
+2021-12-30 01:32:01,469 - mmseg - INFO - Saving checkpoint at 7000 iterations
+2021-12-30 01:32:01,793 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:32:01,793 - mmseg - INFO - Iter [7000/10000]	lr: 1.000e-04, eta: 0:16:09, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0506, decode.acc_seg: 92.9815, loss: 0.0506
+2021-12-30 01:32:02,804 - mmseg - INFO - per class results:
+2021-12-30 01:32:02,804 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.49 | 97.66 |
+|  building  |  70.8 | 83.09 |
++------------+-------+-------+
+2021-12-30 01:32:02,804 - mmseg - INFO - Summary:
+2021-12-30 01:32:02,804 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.93 | 83.14 | 90.37 |
++-------+-------+-------+
+2021-12-30 01:32:02,804 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:32:02,804 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9593, mIoU: 0.8314, mAcc: 0.9037, IoU.background: 0.9549, IoU.building: 0.7080, Acc.background: 0.9766, Acc.building: 0.8309
+2021-12-30 01:32:17,949 - mmseg - INFO - Iter [7050/10000]	lr: 1.000e-04, eta: 0:15:53, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0515, decode.acc_seg: 93.0829, loss: 0.0515
+2021-12-30 01:32:35,285 - mmseg - INFO - Iter [7100/10000]	lr: 1.000e-04, eta: 0:15:37, time: 0.347, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0516, decode.acc_seg: 92.9326, loss: 0.0516
+2021-12-30 01:32:36,197 - mmseg - INFO - per class results:
+2021-12-30 01:32:36,198 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.85 |
+|  building  | 70.36 | 81.61 |
++------------+-------+-------+
+2021-12-30 01:32:36,198 - mmseg - INFO - Summary:
+2021-12-30 01:32:36,198 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.92 | 82.92 | 89.73 |
++-------+-------+-------+
+2021-12-30 01:32:36,198 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9592, mIoU: 0.8292, mAcc: 0.8973, IoU.background: 0.9548, IoU.building: 0.7036, Acc.background: 0.9785, Acc.building: 0.8161
+2021-12-30 01:32:51,353 - mmseg - INFO - Iter [7150/10000]	lr: 1.000e-04, eta: 0:15:21, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0563, decode.acc_seg: 92.7688, loss: 0.0563
+2021-12-30 01:33:06,528 - mmseg - INFO - Iter [7200/10000]	lr: 1.000e-04, eta: 0:15:04, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0504, decode.acc_seg: 93.3681, loss: 0.0504
+2021-12-30 01:33:07,430 - mmseg - INFO - per class results:
+2021-12-30 01:33:07,430 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.46 |  97.7 |
+|  building  | 70.56 | 82.64 |
++------------+-------+-------+
+2021-12-30 01:33:07,430 - mmseg - INFO - Summary:
+2021-12-30 01:33:07,430 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.91 | 83.01 | 90.17 |
++-------+-------+-------+
+2021-12-30 01:33:07,430 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9591, mIoU: 0.8301, mAcc: 0.9017, IoU.background: 0.9546, IoU.building: 0.7056, Acc.background: 0.9770, Acc.building: 0.8264
+2021-12-30 01:33:22,615 - mmseg - INFO - Iter [7250/10000]	lr: 1.000e-04, eta: 0:14:48, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0494, decode.acc_seg: 93.3663, loss: 0.0494
+2021-12-30 01:33:39,931 - mmseg - INFO - Iter [7300/10000]	lr: 1.000e-04, eta: 0:14:32, time: 0.346, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0519, decode.acc_seg: 93.2479, loss: 0.0519
+2021-12-30 01:33:40,893 - mmseg - INFO - per class results:
+2021-12-30 01:33:40,894 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.44 | 97.55 |
+|  building  | 70.73 | 83.61 |
++------------+-------+-------+
+2021-12-30 01:33:40,894 - mmseg - INFO - Summary:
+2021-12-30 01:33:40,894 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.89 | 83.08 | 90.58 |
++-------+-------+-------+
+2021-12-30 01:33:40,894 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9589, mIoU: 0.8308, mAcc: 0.9058, IoU.background: 0.9544, IoU.building: 0.7073, Acc.background: 0.9755, Acc.building: 0.8361
+2021-12-30 01:33:56,063 - mmseg - INFO - Iter [7350/10000]	lr: 1.000e-04, eta: 0:14:16, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0497, decode.acc_seg: 93.3975, loss: 0.0497
+2021-12-30 01:34:11,253 - mmseg - INFO - Iter [7400/10000]	lr: 1.000e-04, eta: 0:14:00, time: 0.304, data_time: 0.047, memory: 7682, decode.loss_ce: 0.0539, decode.acc_seg: 93.0455, loss: 0.0539
+2021-12-30 01:34:12,252 - mmseg - INFO - per class results:
+2021-12-30 01:34:12,252 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.45 | 97.49 |
+|  building  | 70.92 | 84.15 |
++------------+-------+-------+
+2021-12-30 01:34:12,252 - mmseg - INFO - Summary:
+2021-12-30 01:34:12,252 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.91 | 83.18 | 90.82 |
++-------+-------+-------+
+2021-12-30 01:34:12,252 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9591, mIoU: 0.8318, mAcc: 0.9082, IoU.background: 0.9545, IoU.building: 0.7092, Acc.background: 0.9749, Acc.building: 0.8415
+2021-12-30 01:34:27,423 - mmseg - INFO - Iter [7450/10000]	lr: 1.000e-04, eta: 0:13:44, time: 0.323, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0482, decode.acc_seg: 93.5199, loss: 0.0482
+2021-12-30 01:34:42,593 - mmseg - INFO - Iter [7500/10000]	lr: 1.000e-04, eta: 0:13:27, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0505, decode.acc_seg: 93.0079, loss: 0.0505
+2021-12-30 01:34:43,490 - mmseg - INFO - per class results:
+2021-12-30 01:34:43,490 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.49 | 97.61 |
+|  building  | 70.91 | 83.49 |
++------------+-------+-------+
+2021-12-30 01:34:43,490 - mmseg - INFO - Summary:
+2021-12-30 01:34:43,490 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.94 | 83.2 | 90.55 |
++-------+------+-------+
+2021-12-30 01:34:43,491 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9594, mIoU: 0.8320, mAcc: 0.9055, IoU.background: 0.9549, IoU.building: 0.7091, Acc.background: 0.9761, Acc.building: 0.8349
+2021-12-30 01:35:00,827 - mmseg - INFO - Iter [7550/10000]	lr: 1.000e-04, eta: 0:13:12, time: 0.365, data_time: 0.107, memory: 7682, decode.loss_ce: 0.0504, decode.acc_seg: 92.9740, loss: 0.0504
+2021-12-30 01:35:16,007 - mmseg - INFO - Iter [7600/10000]	lr: 1.000e-04, eta: 0:12:55, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0521, decode.acc_seg: 93.1470, loss: 0.0521
+2021-12-30 01:35:16,999 - mmseg - INFO - per class results:
+2021-12-30 01:35:16,999 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.43 | 97.71 |
+|  building  | 70.31 | 82.27 |
++------------+-------+-------+
+2021-12-30 01:35:16,999 - mmseg - INFO - Summary:
+2021-12-30 01:35:16,999 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.88 | 82.87 | 89.99 |
++-------+-------+-------+
+2021-12-30 01:35:16,999 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9588, mIoU: 0.8287, mAcc: 0.8999, IoU.background: 0.9543, IoU.building: 0.7031, Acc.background: 0.9771, Acc.building: 0.8227
+2021-12-30 01:35:32,197 - mmseg - INFO - Iter [7650/10000]	lr: 1.000e-04, eta: 0:12:39, time: 0.324, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0518, decode.acc_seg: 93.1356, loss: 0.0518
+2021-12-30 01:35:47,373 - mmseg - INFO - Iter [7700/10000]	lr: 1.000e-04, eta: 0:12:22, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0553, decode.acc_seg: 93.1726, loss: 0.0553
+2021-12-30 01:35:48,334 - mmseg - INFO - per class results:
+2021-12-30 01:35:48,334 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.53 | 97.78 |
+|  building  | 70.85 | 82.51 |
++------------+-------+-------+
+2021-12-30 01:35:48,334 - mmseg - INFO - Summary:
+2021-12-30 01:35:48,334 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.97 | 83.19 | 90.15 |
++-------+-------+-------+
+2021-12-30 01:35:48,334 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9597, mIoU: 0.8319, mAcc: 0.9015, IoU.background: 0.9553, IoU.building: 0.7085, Acc.background: 0.9778, Acc.building: 0.8251
+2021-12-30 01:36:05,644 - mmseg - INFO - Iter [7750/10000]	lr: 1.000e-04, eta: 0:12:07, time: 0.365, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0481, decode.acc_seg: 92.9805, loss: 0.0481
+2021-12-30 01:36:20,825 - mmseg - INFO - Iter [7800/10000]	lr: 1.000e-04, eta: 0:11:50, time: 0.304, data_time: 0.047, memory: 7682, decode.loss_ce: 0.0509, decode.acc_seg: 92.8693, loss: 0.0509
+2021-12-30 01:36:21,731 - mmseg - INFO - per class results:
+2021-12-30 01:36:21,731 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.31 |  97.3 |
+|  building  | 70.36 | 84.45 |
++------------+-------+-------+
+2021-12-30 01:36:21,731 - mmseg - INFO - Summary:
+2021-12-30 01:36:21,731 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.78 | 82.83 | 90.88 |
++-------+-------+-------+
+2021-12-30 01:36:21,731 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9578, mIoU: 0.8283, mAcc: 0.9088, IoU.background: 0.9531, IoU.building: 0.7036, Acc.background: 0.9730, Acc.building: 0.8445
+2021-12-30 01:36:36,917 - mmseg - INFO - Iter [7850/10000]	lr: 1.000e-04, eta: 0:11:34, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0526, decode.acc_seg: 92.9203, loss: 0.0526
+2021-12-30 01:36:52,100 - mmseg - INFO - Iter [7900/10000]	lr: 1.000e-04, eta: 0:11:18, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0478, decode.acc_seg: 93.1779, loss: 0.0478
+2021-12-30 01:36:53,051 - mmseg - INFO - per class results:
+2021-12-30 01:36:53,051 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.6 | 97.81 |
+|  building  | 71.23 | 82.83 |
++------------+-------+-------+
+2021-12-30 01:36:53,051 - mmseg - INFO - Summary:
+2021-12-30 01:36:53,051 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 96.03 | 83.42 | 90.32 |
++-------+-------+-------+
+2021-12-30 01:36:53,052 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9603, mIoU: 0.8342, mAcc: 0.9032, IoU.background: 0.9560, IoU.building: 0.7123, Acc.background: 0.9781, Acc.building: 0.8283
+2021-12-30 01:37:08,232 - mmseg - INFO - Iter [7950/10000]	lr: 1.000e-04, eta: 0:11:02, time: 0.323, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0587, decode.acc_seg: 92.6512, loss: 0.0587
+2021-12-30 01:37:25,557 - mmseg - INFO - Saving checkpoint at 8000 iterations
+2021-12-30 01:37:25,884 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:37:25,884 - mmseg - INFO - Iter [8000/10000]	lr: 1.000e-04, eta: 0:10:46, time: 0.353, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0500, decode.acc_seg: 93.1608, loss: 0.0500
+2021-12-30 01:37:26,812 - mmseg - INFO - per class results:
+2021-12-30 01:37:26,813 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.55 | 97.88 |
+|  building  | 70.74 | 81.86 |
++------------+-------+-------+
+2021-12-30 01:37:26,813 - mmseg - INFO - Summary:
+2021-12-30 01:37:26,813 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.98 | 83.14 | 89.87 |
++-------+-------+-------+
+2021-12-30 01:37:26,813 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:37:26,813 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9598, mIoU: 0.8314, mAcc: 0.8987, IoU.background: 0.9555, IoU.building: 0.7074, Acc.background: 0.9788, Acc.building: 0.8186
+2021-12-30 01:37:41,964 - mmseg - INFO - Iter [8050/10000]	lr: 1.000e-04, eta: 0:10:30, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0538, decode.acc_seg: 92.7404, loss: 0.0538
+2021-12-30 01:37:57,132 - mmseg - INFO - Iter [8100/10000]	lr: 1.000e-04, eta: 0:10:13, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0502, decode.acc_seg: 93.2199, loss: 0.0502
+2021-12-30 01:37:58,057 - mmseg - INFO - per class results:
+2021-12-30 01:37:58,057 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.56 | 97.73 |
+|  building  | 71.16 | 83.14 |
++------------+-------+-------+
+2021-12-30 01:37:58,057 - mmseg - INFO - Summary:
+2021-12-30 01:37:58,057 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 96.0 | 83.36 | 90.44 |
++------+-------+-------+
+2021-12-30 01:37:58,058 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9600, mIoU: 0.8336, mAcc: 0.9044, IoU.background: 0.9556, IoU.building: 0.7116, Acc.background: 0.9773, Acc.building: 0.8314
+2021-12-30 01:38:13,245 - mmseg - INFO - Iter [8150/10000]	lr: 1.000e-04, eta: 0:09:57, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0465, decode.acc_seg: 93.2916, loss: 0.0465
+2021-12-30 01:38:28,393 - mmseg - INFO - Iter [8200/10000]	lr: 1.000e-04, eta: 0:09:41, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0517, decode.acc_seg: 93.4547, loss: 0.0517
+2021-12-30 01:38:29,346 - mmseg - INFO - per class results:
+2021-12-30 01:38:29,347 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.57 | 97.77 |
+|  building  | 71.12 | 82.88 |
++------------+-------+-------+
+2021-12-30 01:38:29,347 - mmseg - INFO - Summary:
+2021-12-30 01:38:29,347 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 96.01 | 83.35 | 90.33 |
++-------+-------+-------+
+2021-12-30 01:38:29,347 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9601, mIoU: 0.8335, mAcc: 0.9033, IoU.background: 0.9557, IoU.building: 0.7112, Acc.background: 0.9777, Acc.building: 0.8288
+2021-12-30 01:38:46,691 - mmseg - INFO - Iter [8250/10000]	lr: 1.000e-04, eta: 0:09:25, time: 0.366, data_time: 0.109, memory: 7682, decode.loss_ce: 0.0470, decode.acc_seg: 93.2976, loss: 0.0470
+2021-12-30 01:39:01,871 - mmseg - INFO - Iter [8300/10000]	lr: 1.000e-04, eta: 0:09:09, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0502, decode.acc_seg: 93.4576, loss: 0.0502
+2021-12-30 01:39:02,815 - mmseg - INFO - per class results:
+2021-12-30 01:39:02,816 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.5 | 97.83 |
+|  building  | 70.52 |  81.9 |
++------------+-------+-------+
+2021-12-30 01:39:02,816 - mmseg - INFO - Summary:
+2021-12-30 01:39:02,816 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.94 | 83.01 | 89.86 |
++-------+-------+-------+
+2021-12-30 01:39:02,816 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9594, mIoU: 0.8301, mAcc: 0.8986, IoU.background: 0.9550, IoU.building: 0.7052, Acc.background: 0.9783, Acc.building: 0.8190
+2021-12-30 01:39:17,986 - mmseg - INFO - Iter [8350/10000]	lr: 1.000e-04, eta: 0:08:53, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0494, decode.acc_seg: 92.9943, loss: 0.0494
+2021-12-30 01:39:33,150 - mmseg - INFO - Iter [8400/10000]	lr: 1.000e-04, eta: 0:08:36, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0470, decode.acc_seg: 93.7693, loss: 0.0470
+2021-12-30 01:39:34,159 - mmseg - INFO - per class results:
+2021-12-30 01:39:34,159 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.56 |  97.7 |
+|  building  | 71.19 | 83.33 |
++------------+-------+-------+
+2021-12-30 01:39:34,159 - mmseg - INFO - Summary:
+2021-12-30 01:39:34,159 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 96.0 | 83.37 | 90.52 |
++------+-------+-------+
+2021-12-30 01:39:34,159 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9600, mIoU: 0.8337, mAcc: 0.9052, IoU.background: 0.9556, IoU.building: 0.7119, Acc.background: 0.9770, Acc.building: 0.8333
+2021-12-30 01:39:51,474 - mmseg - INFO - Iter [8450/10000]	lr: 1.000e-04, eta: 0:08:21, time: 0.366, data_time: 0.109, memory: 7682, decode.loss_ce: 0.0471, decode.acc_seg: 93.0014, loss: 0.0471
+2021-12-30 01:40:06,653 - mmseg - INFO - Iter [8500/10000]	lr: 1.000e-04, eta: 0:08:04, time: 0.304, data_time: 0.047, memory: 7682, decode.loss_ce: 0.0469, decode.acc_seg: 93.4630, loss: 0.0469
+2021-12-30 01:40:07,597 - mmseg - INFO - per class results:
+2021-12-30 01:40:07,597 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.51 | 97.78 |
+|  building  | 70.73 |  82.4 |
++------------+-------+-------+
+2021-12-30 01:40:07,597 - mmseg - INFO - Summary:
+2021-12-30 01:40:07,597 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.95 | 83.12 | 90.09 |
++-------+-------+-------+
+2021-12-30 01:40:07,597 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9595, mIoU: 0.8312, mAcc: 0.9009, IoU.background: 0.9551, IoU.building: 0.7073, Acc.background: 0.9778, Acc.building: 0.8240
+2021-12-30 01:40:22,782 - mmseg - INFO - Iter [8550/10000]	lr: 1.000e-04, eta: 0:07:48, time: 0.323, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0462, decode.acc_seg: 93.0158, loss: 0.0462
+2021-12-30 01:40:37,958 - mmseg - INFO - Iter [8600/10000]	lr: 1.000e-04, eta: 0:07:32, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0475, decode.acc_seg: 93.1726, loss: 0.0475
+2021-12-30 01:40:38,837 - mmseg - INFO - per class results:
+2021-12-30 01:40:38,837 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.98 |
+|  building  | 70.03 | 80.55 |
++------------+-------+-------+
+2021-12-30 01:40:38,837 - mmseg - INFO - Summary:
+2021-12-30 01:40:38,837 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.91 | 82.75 | 89.26 |
++-------+-------+-------+
+2021-12-30 01:40:38,837 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9591, mIoU: 0.8275, mAcc: 0.8926, IoU.background: 0.9548, IoU.building: 0.7003, Acc.background: 0.9798, Acc.building: 0.8055
+2021-12-30 01:40:54,011 - mmseg - INFO - Iter [8650/10000]	lr: 1.000e-04, eta: 0:07:16, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0494, decode.acc_seg: 93.4334, loss: 0.0494
+2021-12-30 01:41:11,353 - mmseg - INFO - Iter [8700/10000]	lr: 1.000e-04, eta: 0:07:00, time: 0.347, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0446, decode.acc_seg: 93.3256, loss: 0.0446
+2021-12-30 01:41:12,280 - mmseg - INFO - per class results:
+2021-12-30 01:41:12,280 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.51 | 97.94 |
+|  building  | 70.32 | 81.08 |
++------------+-------+-------+
+2021-12-30 01:41:12,280 - mmseg - INFO - Summary:
+2021-12-30 01:41:12,280 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.94 | 82.92 | 89.51 |
++-------+-------+-------+
+2021-12-30 01:41:12,280 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9594, mIoU: 0.8292, mAcc: 0.8951, IoU.background: 0.9551, IoU.building: 0.7032, Acc.background: 0.9794, Acc.building: 0.8108
+2021-12-30 01:41:27,442 - mmseg - INFO - Iter [8750/10000]	lr: 1.000e-04, eta: 0:06:43, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0480, decode.acc_seg: 93.4484, loss: 0.0480
+2021-12-30 01:41:42,600 - mmseg - INFO - Iter [8800/10000]	lr: 1.000e-04, eta: 0:06:27, time: 0.303, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0484, decode.acc_seg: 93.3283, loss: 0.0484
+2021-12-30 01:41:43,482 - mmseg - INFO - per class results:
+2021-12-30 01:41:43,482 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.44 |  97.7 |
+|  building  | 70.37 | 82.37 |
++------------+-------+-------+
+2021-12-30 01:41:43,482 - mmseg - INFO - Summary:
+2021-12-30 01:41:43,482 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.88 | 82.9 | 90.04 |
++-------+------+-------+
+2021-12-30 01:41:43,482 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9588, mIoU: 0.8290, mAcc: 0.9004, IoU.background: 0.9544, IoU.building: 0.7037, Acc.background: 0.9770, Acc.building: 0.8237
+2021-12-30 01:41:58,641 - mmseg - INFO - Iter [8850/10000]	lr: 1.000e-04, eta: 0:06:11, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0490, decode.acc_seg: 92.7272, loss: 0.0490
+2021-12-30 01:42:15,955 - mmseg - INFO - Iter [8900/10000]	lr: 1.000e-04, eta: 0:05:55, time: 0.346, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0478, decode.acc_seg: 93.0935, loss: 0.0478
+2021-12-30 01:42:16,849 - mmseg - INFO - per class results:
+2021-12-30 01:42:16,849 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.55 |
+|  building  | 70.94 | 83.82 |
++------------+-------+-------+
+2021-12-30 01:42:16,849 - mmseg - INFO - Summary:
+2021-12-30 01:42:16,849 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.93 | 83.21 | 90.69 |
++-------+-------+-------+
+2021-12-30 01:42:16,849 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9593, mIoU: 0.8321, mAcc: 0.9069, IoU.background: 0.9548, IoU.building: 0.7094, Acc.background: 0.9755, Acc.building: 0.8382
+2021-12-30 01:42:32,023 - mmseg - INFO - Iter [8950/10000]	lr: 1.000e-04, eta: 0:05:39, time: 0.321, data_time: 0.064, memory: 7682, decode.loss_ce: 0.0473, decode.acc_seg: 93.3275, loss: 0.0473
+2021-12-30 01:42:47,179 - mmseg - INFO - Saving checkpoint at 9000 iterations
+2021-12-30 01:42:47,503 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:42:47,503 - mmseg - INFO - Iter [9000/10000]	lr: 1.000e-04, eta: 0:05:23, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0442, decode.acc_seg: 92.9552, loss: 0.0442
+2021-12-30 01:42:48,430 - mmseg - INFO - per class results:
+2021-12-30 01:42:48,431 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.56 | 97.77 |
+|  building  | 71.05 | 82.83 |
++------------+-------+-------+
+2021-12-30 01:42:48,431 - mmseg - INFO - Summary:
+2021-12-30 01:42:48,431 - mmseg - INFO - 
++------+-------+------+
+| aAcc |  mIoU | mAcc |
++------+-------+------+
+| 96.0 | 83.31 | 90.3 |
++------+-------+------+
+2021-12-30 01:42:48,431 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:42:48,431 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9600, mIoU: 0.8331, mAcc: 0.9030, IoU.background: 0.9556, IoU.building: 0.7105, Acc.background: 0.9777, Acc.building: 0.8283
+2021-12-30 01:43:03,705 - mmseg - INFO - Iter [9050/10000]	lr: 1.000e-04, eta: 0:05:06, time: 0.324, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0501, decode.acc_seg: 93.4144, loss: 0.0501
+2021-12-30 01:43:19,421 - mmseg - INFO - Iter [9100/10000]	lr: 1.000e-04, eta: 0:04:50, time: 0.314, data_time: 0.047, memory: 7682, decode.loss_ce: 0.0464, decode.acc_seg: 93.5301, loss: 0.0464
+2021-12-30 01:43:20,391 - mmseg - INFO - per class results:
+2021-12-30 01:43:20,391 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.53 | 97.92 |
+|  building  | 70.55 | 81.44 |
++------------+-------+-------+
+2021-12-30 01:43:20,391 - mmseg - INFO - Summary:
+2021-12-30 01:43:20,391 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.97 | 83.04 | 89.68 |
++-------+-------+-------+
+2021-12-30 01:43:20,392 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9597, mIoU: 0.8304, mAcc: 0.8968, IoU.background: 0.9553, IoU.building: 0.7055, Acc.background: 0.9792, Acc.building: 0.8144
+2021-12-30 01:43:38,042 - mmseg - INFO - Iter [9150/10000]	lr: 1.000e-04, eta: 0:04:34, time: 0.372, data_time: 0.109, memory: 7682, decode.loss_ce: 0.0442, decode.acc_seg: 93.1751, loss: 0.0442
+2021-12-30 01:43:55,067 - mmseg - INFO - Iter [9200/10000]	lr: 1.000e-04, eta: 0:04:18, time: 0.340, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0472, decode.acc_seg: 92.9864, loss: 0.0472
+2021-12-30 01:43:56,097 - mmseg - INFO - per class results:
+2021-12-30 01:43:56,097 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.5 | 97.55 |
+|  building  | 71.14 | 84.09 |
++------------+-------+-------+
+2021-12-30 01:43:56,097 - mmseg - INFO - Summary:
+2021-12-30 01:43:56,098 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.95 | 83.32 | 90.82 |
++-------+-------+-------+
+2021-12-30 01:43:56,098 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9595, mIoU: 0.8332, mAcc: 0.9082, IoU.background: 0.9550, IoU.building: 0.7114, Acc.background: 0.9755, Acc.building: 0.8409
+2021-12-30 01:44:13,125 - mmseg - INFO - Iter [9250/10000]	lr: 1.000e-04, eta: 0:04:02, time: 0.361, data_time: 0.067, memory: 7682, decode.loss_ce: 0.0468, decode.acc_seg: 93.2522, loss: 0.0468
+2021-12-30 01:44:28,407 - mmseg - INFO - Iter [9300/10000]	lr: 1.000e-04, eta: 0:03:46, time: 0.306, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0469, decode.acc_seg: 93.4126, loss: 0.0469
+2021-12-30 01:44:29,334 - mmseg - INFO - per class results:
+2021-12-30 01:44:29,334 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.52 | 97.59 |
+|  building  |  71.2 | 83.96 |
++------------+-------+-------+
+2021-12-30 01:44:29,334 - mmseg - INFO - Summary:
+2021-12-30 01:44:29,334 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.97 | 83.36 | 90.77 |
++-------+-------+-------+
+2021-12-30 01:44:29,334 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9597, mIoU: 0.8336, mAcc: 0.9077, IoU.background: 0.9552, IoU.building: 0.7120, Acc.background: 0.9759, Acc.building: 0.8396
+2021-12-30 01:44:48,078 - mmseg - INFO - Iter [9350/10000]	lr: 1.000e-04, eta: 0:03:30, time: 0.393, data_time: 0.108, memory: 7682, decode.loss_ce: 0.0455, decode.acc_seg: 93.4504, loss: 0.0455
+2021-12-30 01:45:04,022 - mmseg - INFO - Iter [9400/10000]	lr: 1.000e-04, eta: 0:03:14, time: 0.319, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0447, decode.acc_seg: 93.7233, loss: 0.0447
+2021-12-30 01:45:04,953 - mmseg - INFO - per class results:
+2021-12-30 01:45:04,953 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.56 | 97.76 |
+|  building  | 71.07 | 82.91 |
++------------+-------+-------+
+2021-12-30 01:45:04,953 - mmseg - INFO - Summary:
+2021-12-30 01:45:04,953 - mmseg - INFO - 
++------+-------+-------+
+| aAcc |  mIoU |  mAcc |
++------+-------+-------+
+| 96.0 | 83.32 | 90.33 |
++------+-------+-------+
+2021-12-30 01:45:04,953 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9600, mIoU: 0.8332, mAcc: 0.9033, IoU.background: 0.9556, IoU.building: 0.7107, Acc.background: 0.9776, Acc.building: 0.8291
+2021-12-30 01:45:20,156 - mmseg - INFO - Iter [9450/10000]	lr: 1.000e-04, eta: 0:02:58, time: 0.323, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0470, decode.acc_seg: 93.6331, loss: 0.0470
+2021-12-30 01:45:35,372 - mmseg - INFO - Iter [9500/10000]	lr: 1.000e-04, eta: 0:02:41, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0440, decode.acc_seg: 93.0602, loss: 0.0440
+2021-12-30 01:45:36,285 - mmseg - INFO - per class results:
+2021-12-30 01:45:36,285 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.52 | 97.85 |
+|  building  | 70.64 | 81.94 |
++------------+-------+-------+
+2021-12-30 01:45:36,285 - mmseg - INFO - Summary:
+2021-12-30 01:45:36,285 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.96 | 83.08 | 89.89 |
++-------+-------+-------+
+2021-12-30 01:45:36,285 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9596, mIoU: 0.8308, mAcc: 0.8989, IoU.background: 0.9552, IoU.building: 0.7064, Acc.background: 0.9785, Acc.building: 0.8194
+2021-12-30 01:45:51,471 - mmseg - INFO - Iter [9550/10000]	lr: 1.000e-04, eta: 0:02:25, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0452, decode.acc_seg: 93.2715, loss: 0.0452
+2021-12-30 01:46:08,845 - mmseg - INFO - Iter [9600/10000]	lr: 1.000e-04, eta: 0:02:09, time: 0.347, data_time: 0.089, memory: 7682, decode.loss_ce: 0.0463, decode.acc_seg: 93.0019, loss: 0.0463
+2021-12-30 01:46:09,865 - mmseg - INFO - per class results:
+2021-12-30 01:46:09,865 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.51 | 97.49 |
+|  building  |  71.3 | 84.59 |
++------------+-------+-------+
+2021-12-30 01:46:09,865 - mmseg - INFO - Summary:
+2021-12-30 01:46:09,865 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.96 | 83.4 | 91.04 |
++-------+------+-------+
+2021-12-30 01:46:09,865 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9596, mIoU: 0.8340, mAcc: 0.9104, IoU.background: 0.9551, IoU.building: 0.7130, Acc.background: 0.9749, Acc.building: 0.8459
+2021-12-30 01:46:25,052 - mmseg - INFO - Iter [9650/10000]	lr: 1.000e-04, eta: 0:01:53, time: 0.324, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0456, decode.acc_seg: 93.4555, loss: 0.0456
+2021-12-30 01:46:40,250 - mmseg - INFO - Iter [9700/10000]	lr: 1.000e-04, eta: 0:01:37, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0417, decode.acc_seg: 93.5124, loss: 0.0417
+2021-12-30 01:46:41,159 - mmseg - INFO - per class results:
+2021-12-30 01:46:41,160 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.48 | 97.54 |
+|  building  | 70.99 | 83.93 |
++------------+-------+-------+
+2021-12-30 01:46:41,160 - mmseg - INFO - Summary:
+2021-12-30 01:46:41,160 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.93 | 83.23 | 90.74 |
++-------+-------+-------+
+2021-12-30 01:46:41,160 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9593, mIoU: 0.8323, mAcc: 0.9074, IoU.background: 0.9548, IoU.building: 0.7099, Acc.background: 0.9754, Acc.building: 0.8393
+2021-12-30 01:46:56,372 - mmseg - INFO - Iter [9750/10000]	lr: 1.000e-04, eta: 0:01:20, time: 0.322, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0481, decode.acc_seg: 93.1978, loss: 0.0481
+2021-12-30 01:47:13,721 - mmseg - INFO - Iter [9800/10000]	lr: 1.000e-04, eta: 0:01:04, time: 0.347, data_time: 0.090, memory: 7682, decode.loss_ce: 0.0450, decode.acc_seg: 93.5679, loss: 0.0450
+2021-12-30 01:47:14,660 - mmseg - INFO - per class results:
+2021-12-30 01:47:14,661 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.53 | 97.59 |
+|  building  |  71.2 | 83.94 |
++------------+-------+-------+
+2021-12-30 01:47:14,661 - mmseg - INFO - Summary:
+2021-12-30 01:47:14,661 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.97 | 83.36 | 90.77 |
++-------+-------+-------+
+2021-12-30 01:47:14,661 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9597, mIoU: 0.8336, mAcc: 0.9077, IoU.background: 0.9553, IoU.building: 0.7120, Acc.background: 0.9759, Acc.building: 0.8394
+2021-12-30 01:47:29,860 - mmseg - INFO - Iter [9850/10000]	lr: 1.000e-04, eta: 0:00:48, time: 0.323, data_time: 0.065, memory: 7682, decode.loss_ce: 0.0483, decode.acc_seg: 93.3059, loss: 0.0483
+2021-12-30 01:47:45,051 - mmseg - INFO - Iter [9900/10000]	lr: 1.000e-04, eta: 0:00:32, time: 0.304, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0464, decode.acc_seg: 93.4951, loss: 0.0464
+2021-12-30 01:47:46,062 - mmseg - INFO - per class results:
+2021-12-30 01:47:46,062 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 95.54 | 97.88 |
+|  building  | 70.67 |  81.8 |
++------------+-------+-------+
+2021-12-30 01:47:46,062 - mmseg - INFO - Summary:
+2021-12-30 01:47:46,062 - mmseg - INFO - 
++-------+------+-------+
+|  aAcc | mIoU |  mAcc |
++-------+------+-------+
+| 95.97 | 83.1 | 89.84 |
++-------+------+-------+
+2021-12-30 01:47:46,062 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9597, mIoU: 0.8310, mAcc: 0.8984, IoU.background: 0.9554, IoU.building: 0.7067, Acc.background: 0.9788, Acc.building: 0.8180
+2021-12-30 01:48:01,247 - mmseg - INFO - Iter [9950/10000]	lr: 1.000e-04, eta: 0:00:16, time: 0.324, data_time: 0.066, memory: 7682, decode.loss_ce: 0.0464, decode.acc_seg: 93.0807, loss: 0.0464
+2021-12-30 01:48:16,445 - mmseg - INFO - Saving checkpoint at 10000 iterations
+2021-12-30 01:48:16,766 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:48:16,766 - mmseg - INFO - Iter [10000/10000]	lr: 1.000e-04, eta: 0:00:00, time: 0.310, data_time: 0.046, memory: 7682, decode.loss_ce: 0.0465, decode.acc_seg: 93.0585, loss: 0.0465
+2021-12-30 01:48:17,785 - mmseg - INFO - per class results:
+2021-12-30 01:48:17,785 - mmseg - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  95.5 | 97.61 |
+|  building  | 71.01 | 83.61 |
++------------+-------+-------+
+2021-12-30 01:48:17,785 - mmseg - INFO - Summary:
+2021-12-30 01:48:17,786 - mmseg - INFO - 
++-------+-------+-------+
+|  aAcc |  mIoU |  mAcc |
++-------+-------+-------+
+| 95.95 | 83.25 | 90.61 |
++-------+-------+-------+
+2021-12-30 01:48:17,786 - mmseg - INFO - Exp name: TW-2.py
+2021-12-30 01:48:17,786 - mmseg - INFO - Iter(val) [37]	aAcc: 0.9595, mIoU: 0.8325, mAcc: 0.9061, IoU.background: 0.9550, IoU.building: 0.7101, Acc.background: 0.9761, Acc.building: 0.8361
