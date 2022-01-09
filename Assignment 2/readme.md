@@ -1,6 +1,6 @@
 # Exercise on Building Detection
 ### Description
-This is my second assignment for course Remote Sensing Image Analysis at the University of Tokyo.
+This is my second assignment for course Remote Sensing Image Analysis at the University of Tokyo. **(Class Ranking: 1/80)**
 |Input image|Swin-S|Twins-FPN|U-Net|
 |---|---|---|---|
 |![overview](input.png)|![overview](swin-s.png)|![overview](twins.png)|![overview](unet.png)|
@@ -12,8 +12,6 @@ This is my second assignment for course Remote Sensing Image Analysis at the Uni
 |Twins-FPN | SVT-S | ADE-20K | 10000 | 8 | [config](Twins.log) | [log](Twins.log.json) |
 ### Usage
 The assignment is based on the tools provided by open-mmlab. Please refer to [MMSegmentation](https://github.com/open-mmlab/mmsegmentation) for instruction.
-### Acknowledgement
-The usage of mmesegmentation tools was carried out with the assistance of [Carno](https://github.com/CarnoZhao).
 ### References
 * MMSegmentation Contributors, MMSegmentation: OpenMMLab Semantic Segmentation Toolbox and Benchmark. [https://github.com/open-mmlab/mmsegmentation](https://github.com/open-mmlab/mmsegmentation), 2020.
 * Liu *et al.*, "Swin transformer: Hierarchical vision transformer using shifted windows," *arXiv preprint arXiv:2103.14030*, 2021.
