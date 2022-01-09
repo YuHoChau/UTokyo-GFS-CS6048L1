@@ -1,6 +1,6 @@
 # Exercise on Panchromatic Sharpening
 ### Description
-This is my first assignment for course Remote Sensing Image Analysis at the University of Tokyo.
+This is my first assignment for course Remote Sensing Image Analysis at the University of Tokyo.  **(Class Ranking: 34/90)**
 |Original PAN (GSD: 1m)|GLP-Reg_FS (GSD: 4m)|Gram-Schmidt (GSD: 4m)
 |---|---|---|
 |![overview](pan.png)|![overview](GLP-Reg_FS_rgb.png)|![overview](GS_fusion_rgb.png)
